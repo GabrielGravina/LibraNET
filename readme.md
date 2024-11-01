@@ -1,13 +1,14 @@
 
-Entrar no diretório backend e:
-criar ambiente virtual com python -m venv venv
-Ativar ambiente virtual
+Entrar no diretório backend e: <br/>
+criar ambiente virtual com: <br/>
+python -m venv venv
+Ativar ambiente virtual <br/>
 Instalar requirements.txt
-Executar: 
-    set FLASK_APP=app.py
-    set FLASK_ENV=development
+Executar: <br/>
+    set FLASK_APP=app.py<br/>
+    set FLASK_ENV=development<br/>
 flask run --reload
-
-Entrar no diretório frontend e:
-npm install
-npm run dev
+<br/>
+Entrar no diretório frontend e:<br/>
+npm install<br/>
+npm run dev<br/>

@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from flask_migrate import Migrate
+#from flask_migrate import Migrate
 
 # Inicialização da aplicação Flask
 app = Flask(__name__)
@@ -11,7 +11,7 @@ CORS(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///library.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+
 # Importa as rotas e modelos
 import routes  # A importação deve estar aqui
 

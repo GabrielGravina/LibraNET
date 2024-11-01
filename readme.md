@@ -1,4 +1,3 @@
-
 Entrar no diretório backend e: <br/>
 criar ambiente virtual com: <br/>
 ```
@@ -16,6 +15,7 @@ flask run --reload
 ```
 <br/>
 Entrar no diretório frontend e:<br/>
+
 ```
 npm install<br/>
 npm run dev<br/>

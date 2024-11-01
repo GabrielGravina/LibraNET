@@ -7,8 +7,8 @@ Ativar ambiente virtual <br/>
 Instalar requirements.txt
 Executar: <br/>
 ```
-set FLASK_APP=app.py<br/>
-set FLASK_ENV=development<br/>
+set FLASK_APP=app.py
+set FLASK_ENV=development
 ```
 ```
 flask run --reload
@@ -17,6 +17,6 @@ flask run --reload
 Entrar no diretório frontend e:<br/>
 
 ```
-npm install<br/>
-npm run dev<br/>
+npm install
+npm run dev
 ```

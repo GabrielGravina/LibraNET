@@ -143,6 +143,7 @@ def buscar_emprestimos_por_nome(nome):
                     "usuario_nome": usuario.nome,
                     "data_emprestimo": emp.data_emprestimo,
                     "data_devolucao": emp.data_devolucao,
+                    "devolvido": emp.devolvido,
                     "multa": valor_multa  # Inclui o valor da multa total
                 })
 

@@ -2,22 +2,30 @@ import { useState } from 'react';
 import Navbar from './components/Navbar';
 import FineManagement from './components/FineManagement';
 import UserSearchBar from './components/UserSearchBar';
+import LoginControl from './components/LoginControl'
+import LoanList from './components/LoanList';
 import './App.css';
+import SearchBar from './components/SearchBar';
 
 function App() {
   // Estado para simular o tipo de usuário. true representa um admin.
   const [isAdmin, setIsAdmin] = useState(false); // Ajuste para true se quiser testar como admin
+  
+  
+  const toggleAdmin = () => {
+    setIsAdmin(!isAdmin)
+  }
 
   return (
     <>
       <Navbar />
-      {/* Botão para simular login como admin ou usuário */}
-      <button onClick={() => setIsAdmin(!isAdmin)}>
-        {isAdmin ? 'Sair do modo Admin' : 'Entrar como Admin'}
-      </button>
-      
-      {/* Lógica condicional para exibir FineManagement apenas para admin */}
-      {isAdmin ? <FineManagement /> : <UserSearchBar />}
+
+      <LoginControl isAdmin={isAdmin} toggleAdmin={toggleAdmin} />
+      <LoanList
+        isAdmin={isAdmin}
+      />
+      <SearchBar />
+      {console.log(isAdmin)}
     </>
   );
 }

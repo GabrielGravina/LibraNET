@@ -5,7 +5,8 @@ import ReactDOM from 'react-dom/client'
 
 import './index.css'
 import HomePage from './pages/HomePage'
-import ProfilesPage from './pages/ProfilesPage'
+import LoanPage from './pages/LoanPage'
+import EditLoanPage from './pages/EditLoanPage'
 import NotFoundPage from './pages/NotFoundPage'
 
 const router = createBrowserRouter([
@@ -16,7 +17,11 @@ const router = createBrowserRouter([
   },
   {
     path: '/profiles',
-    element: <ProfilesPage />
+    element: <EditLoanPage />
+  },
+  {
+    path: '/emprestimo/:emprestimoId',
+    element: <LoanPage />
   }
 
 ])

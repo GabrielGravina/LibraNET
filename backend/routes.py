@@ -100,6 +100,29 @@ def get_emprestimos():
         result.append(emprestimo_data)
     return jsonify(result), 200
 
+@app.route("/api/emprestimo/<int:emprestimo_id>", methods=["GET"])
+def get_emprestimo_by_id(emprestimo_id):
+    emprestimo = Emprestimo.query.get(emprestimo_id)
+    
+    if not emprestimo:
+        return jsonify({"error": "Empréstimo não encontrado"}), 404
+
+    # Serializa cada multa na lista
+    multas_data = [{"valor": multa.valor} for multa in emprestimo.multa]
+
+    # Constrói o dicionário de resposta
+    emprestimo_data = {
+        "emprestimo_id": emprestimo.id,
+        "usuario_nome": emprestimo.usuario.nome,
+        "data_emprestimo": emprestimo.data_emprestimo,
+        "data_devolucao": emprestimo.data_devolucao,
+        "devolvido": emprestimo.devolvido,
+        "multas": multas_data  # Inclui a lista de multas serializáveis
+    }
+    
+    return jsonify(emprestimo_data), 200
+
+
 @app.route("/api/emprestimos", methods=["POST"])
 def create_emprestimo():
     try:
@@ -198,7 +221,7 @@ def create_multa():
         return jsonify({"error": str(e)}), 500
 
 # Atualizar Empréstimo para incluir a data de devolução
-@app.route("/api/emprestimos/<int:id>", methods=["PATCH"])
+@app.route("/api/emprestimo/<int:id>", methods=["PATCH"])
 def update_emprestimo(id):
     try:
         emprestimo = Emprestimo.query.get(id)

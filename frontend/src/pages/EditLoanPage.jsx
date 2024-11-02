@@ -1,4 +1,4 @@
-function ProfilesPage() {
+export default function EditLoanPage() {
     
 
 
@@ -9,4 +9,3 @@ function ProfilesPage() {
     )
 }
 
-export default ProfilesPage

@@ -1,10 +1,15 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 function LoanList(props) {
 
     const [searchTerm, setSearchTerm] = useState("")
     const [results, setResults] = useState([])
     const [isLoading, setIsLoading] = useState(false)
+
+    const handleEditButton = () => {
+        console.log("Ignore")
+    }
 
     const handleSearch = async (event) => {
         const name = event.target.value
@@ -86,9 +91,14 @@ function LoanList(props) {
                                 <button onClick={() => console.log("Pagar Multa")}>
                                     Pagar Multa
                                 </button>
-                                <button className="edit-button" onClick={() => handleEditButton}>
-                                    Editar
-                                </button>
+                                
+                                    
+                                        
+                                        <Link to={`/emprestimo/${result.emprestimo_id}`} className="edit-button">
+                                            Editar Empréstimo
+                                        </Link>
+                                    
+                                
 
                             </div>
                 
@@ -111,25 +121,3 @@ function LoanList(props) {
 
 export default LoanList;
 
-{/* export default LoanList
-
-// import React from 'react';
-// import '../styles/FineManagement.css';
-// import LoanCard from './LoanCard';
-
-// function FineManagement(results, isAdmin, onMarkReturned, onMarkPaid) {
-//   return (
-//     <div className="fine-management">
-//       <h2>Gerenciamento de Multas</h2>
-//       <LoanCard
-//       key={loan.emprestimo_id}
-//       loan={loan}
-//       isAdmin={isAdmin}
-//       onMarkReturned={onMarkReturned}
-//       onMarkPaid={onMarkPaid}
-//       />
-//     </div>
-//   );
-// }
-
-// export default FineManagement; */}

@@ -231,36 +231,35 @@ def create_multa():
         return jsonify({"error": str(e)}), 500
 
 # Atualizar Empréstimo para incluir a data de devolução
+from datetime import datetime
+
 @app.route("/api/emprestimo/<int:id>", methods=["PATCH"])
 def update_emprestimo(id):
-    try:
-        emprestimo = Emprestimo.query.get(id)
-        if emprestimo is None:
-            return jsonify({"error": "Empréstimo não encontrado."}), 404
+    data = request.json  # Pega os dados enviados na requisição
 
-        data = request.json
+    # Busca o empréstimo pelo ID
+    emprestimo = Emprestimo.query.get(id)
+    if not emprestimo:
+        return jsonify({"error": "Empréstimo não encontrado."}), 404
 
-        # Atualiza o campo status, se fornecido
-        if "status" in data:
-            emprestimo.status = data["status"]
-        
-        # Atualiza o campo devolvido, se fornecido
-        if "devolvido" in data:
-            emprestimo.devolvido = data["devolvido"]
-        
-        # Atualiza o campo multa
-        if "multa" in data:
-            if isinstance(emprestimo.multa, list):
-                # Adiciona uma nova multa à coleção, criando um novo objeto Multa
-                emprestimo.multa.append(Multa(valor=data["multa"]))
-            else:
-                # Retorna erro se 'multa' não for uma coleção
-                return jsonify({"error": "Campo 'multa' não é uma coleção."}), 400
+    # Atualiza os atributos do empréstimo
+    emprestimo.data_devolucao = datetime.strptime(data["data_devolucao"], "%a, %d %b %Y %H:%M:%S %Z")
+    emprestimo.devolvido = data.get("devolvido", emprestimo.devolvido)
 
-        # Salva as alterações no banco de dados
-        db.session.commit()
-        return jsonify({"msg": "Empréstimo atualizado com sucesso."}), 200
+    # Atualiza a multa se ela existir
+    if emprestimo.multa:
+        emprestimo.multa.valor = data["multa"]["valor"]  # Atualiza o valor da multa
+        emprestimo.multa.data_pagamento = data["multa"].get("data_pagamento", emprestimo.multa.data_pagamento)
+    else:
+        # Se não existir, cria uma nova multa
+        nova_multa = Multa(
+            emprestimo_id=emprestimo.id,
+            valor=data["multa"]["valor"],
+            data_pagamento=data["multa"].get("data_pagamento")
+        )
+        db.session.add(nova_multa)
 
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+    # Salva as mudanças no banco de dados
+    db.session.commit()
+
+    return jsonify(emprestimo.to_json()), 200

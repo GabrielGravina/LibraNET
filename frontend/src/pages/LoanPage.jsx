@@ -4,7 +4,6 @@ import { useParams } from "react-router-dom";
 export default function LoanPage() {
     const { emprestimoId } = useParams(); // Obtém o ID do empréstimo da URL
     const [loanData, setLoanData] = useState(null); // Armazena dados do empréstimo
-    const [fineData, setFineData] = useState(null)
     const [isLoading, setIsLoading] = useState(true); // Controla o estado de carregamento
     const [error, setError] = useState(null); // Armazena erros
 
@@ -28,24 +27,21 @@ export default function LoanPage() {
         fetchLoanData();
     }, [emprestimoId]);
 
-    // useEffect (() => {
-    //     const fetchFineData = async () => {
-    //     try {
-    //         const response = await fetch(`http://127.0.0.1:5000/api/multa/$`)
-    //     }
-    //     }
-    
-    // }) 
     // Atualiza os dados do empréstimo no servidor
     const handleUpdateLoan = async (event) => {
         event.preventDefault();
+        const requestData = {
+            ...loanData,
+            data_devolucao: new Date(loanData.data_devolucao).toUTCString(), // Converte a data para o formato UTC
+        };
+
         try {
             const response = await fetch(`http://127.0.0.1:5000/api/emprestimo/${emprestimoId}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(loanData),
+                body: JSON.stringify(requestData),
             });
             if (!response.ok) {
                 throw new Error("Erro ao atualizar os dados do empréstimo.");
@@ -63,7 +59,11 @@ export default function LoanPage() {
         const { name, value, type, checked } = e.target;
         setLoanData((prevData) => ({
             ...prevData,
-            [name]: type === "checkbox" ? checked : value
+            [name]: type === "checkbox" ? checked : value,
+            multa: {
+                ...prevData.multa,
+                [name === "multa" ? "valor" : name]: type === "checkbox" ? checked : value
+            }
         }));
     };
 
@@ -85,16 +85,12 @@ export default function LoanPage() {
                     <p className="text-gray-600"><strong>Devolvido:</strong> {loanData.devolvido ? 'Sim' : 'Não'}</p>
                     <p className="text-gray-600"><strong>Valor da Multa:</strong> {loanData.multa?.valor ? loanData.multa.valor : 'Nenhuma multa aplicada'}</p>
                     <p className="text-gray-600"><strong>Data de Pagamento:</strong> {loanData.multa?.data_pagamento ? loanData.multa.data_pagamento : 'Não paga'}</p>
-
-
-                    
-                    
                 </div>
             )}
 
-           {/* Formulário de Edição */}
-           <form onSubmit={handleUpdateLoan} className="space-y-4">
-           <h3 className="">Editar Informações</h3>
+            {/* Formulário de Edição */}
+            <form onSubmit={handleUpdateLoan} className="space-y-4">
+                <h3 className="">Editar Informações</h3>
                 {/* Campo para marcar devolução */}
                 <div className="flex items-center justify-center">
                     <label className="mr-2">Devolvido:</label>
@@ -124,8 +120,8 @@ export default function LoanPage() {
                     <label className="block">Multa:</label>
                     <input
                         type="number"
-                        name="multa"
-                        value={loanData.multa || 0}
+                        name="multa" // O name aqui deve ser "multa" para o estado ser atualizado corretamente
+                        value={loanData.multa?.valor || 0} // Acessa o valor corretamente
                         onChange={handleChange}
                         min="0"
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"

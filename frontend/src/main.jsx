@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage'
 import LoanPage from './pages/LoanPage'
 import EditLoanPage from './pages/EditLoanPage'
 import NotFoundPage from './pages/NotFoundPage'
+import BookPage from './pages/BookPage'
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: '/emprestimo/:emprestimoId',
     element: <LoanPage />
+  },
+  {
+    path: '/livros/:livroId',
+    element: <BookPage />
   }
 
 ])

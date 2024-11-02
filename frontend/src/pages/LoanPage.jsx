@@ -29,7 +29,7 @@ export default function LoanPage() {
 
     // Atualiza os dados do empréstimo no servidor
     const handleUpdateLoan = async (event) => {
-        event.preventDefault();
+        
         const requestData = {
             ...loanData,
             data_devolucao: new Date(loanData.data_devolucao).toUTCString(), // Converte a data para o formato UTC

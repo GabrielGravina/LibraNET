@@ -4,6 +4,7 @@ import { useParams } from "react-router-dom";
 export default function LoanPage() {
     const { emprestimoId } = useParams(); // Obtém o ID do empréstimo da URL
     const [loanData, setLoanData] = useState(null); // Armazena dados do empréstimo
+    const [fineData, setFineData] = useState(null)
     const [isLoading, setIsLoading] = useState(true); // Controla o estado de carregamento
     const [error, setError] = useState(null); // Armazena erros
 
@@ -27,6 +28,14 @@ export default function LoanPage() {
         fetchLoanData();
     }, [emprestimoId]);
 
+    // useEffect (() => {
+    //     const fetchFineData = async () => {
+    //     try {
+    //         const response = await fetch(`http://127.0.0.1:5000/api/multa/$`)
+    //     }
+    //     }
+    
+    // }) 
     // Atualiza os dados do empréstimo no servidor
     const handleUpdateLoan = async (event) => {
         event.preventDefault();
@@ -74,10 +83,11 @@ export default function LoanPage() {
                     <p className="text-gray-600"><strong>Data do Empréstimo:</strong> {loanData.data_emprestimo}</p>
                     <p className="text-gray-600"><strong>Data de Devolução:</strong> {loanData.data_devolucao}</p>
                     <p className="text-gray-600"><strong>Devolvido:</strong> {loanData.devolvido ? 'Sim' : 'Não'}</p>
-                    <p className="text-gray-600">Multa: {loanData.multa || "Sem multa"}</p>
+                    <p className="text-gray-600"><strong>Valor da Multa:</strong> {loanData.multa?.valor ? loanData.multa.valor : 'Nenhuma multa aplicada'}</p>
+                    <p className="text-gray-600"><strong>Data de Pagamento:</strong> {loanData.multa?.data_pagamento ? loanData.multa.data_pagamento : 'Não paga'}</p>
 
 
-                    {console.log(loanData.multa)}
+                    
                     
                 </div>
             )}

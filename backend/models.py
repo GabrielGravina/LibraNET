@@ -51,7 +51,7 @@ class Emprestimo(db.Model):
     data_emprestimo = db.Column(db.DateTime, default=datetime.utcnow)
     data_devolucao = db.Column(db.DateTime, nullable=True)
     devolvido = db.Column(db.Boolean, default=False) 
-    multa = db.relationship('Multa', backref='emprestimo', lazy=True)
+    multa = db.relationship('Multa', uselist=False, backref='emprestimo')
     
 
     def to_json(self):

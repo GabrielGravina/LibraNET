@@ -108,8 +108,8 @@ def get_emprestimo_by_id(emprestimo_id):
     if not emprestimo:
         return jsonify({"error": "Empréstimo não encontrado"}), 404
 
-    # Serializa cada multa na lista
-    multas_data = [{"valor": multa.valor} for multa in emprestimo.multa]
+    # Busca a multa associada ao empréstimo
+    multa = emprestimo.multa  # Acessa a relação de multa
 
     # Constrói o dicionário de resposta
     emprestimo_data = {
@@ -118,11 +118,13 @@ def get_emprestimo_by_id(emprestimo_id):
         "data_emprestimo": emprestimo.data_emprestimo,
         "data_devolucao": emprestimo.data_devolucao,
         "devolvido": emprestimo.devolvido,
-        "multas": multas_data  # Inclui a lista de multas serializáveis
+        "multa": {
+            "valor": multa.valor if multa else None,  # Adiciona o valor da multa, se existir
+            "data_pagamento": multa.data_pagamento if multa else None  # Adiciona a data de pagamento, se existir
+        }
     }
     
     return jsonify(emprestimo_data), 200
-
 
 @app.route("/api/emprestimos", methods=["POST"])
 def create_emprestimo():
@@ -195,12 +197,19 @@ def calcular_multa(emprestimo):
         db.session.commit()
 
 
-# CRUD para Multas
+# ---------------- CRUD para Multas --------------------------
 @app.route("/api/multas", methods=["GET"])
 def get_multas():
     multas = Multa.query.all()
     result = [multa.to_json() for multa in multas]
     return jsonify(result), 200
+
+@app.route("/api/multas/<int:id>", methods=["GET"])
+def get_multa_by_id(id):
+    multa = Multa.query.get(id)  # Obtém a multa pelo ID
+    if multa is None:
+        return jsonify({"error": "Multa não encontrada"}), 404  # Retorna erro se não encontrar
+    return jsonify(multa.to_json()), 200  # Retorna os dados da multa
 
 @app.route("/api/multas", methods=["POST"])
 def create_multa():

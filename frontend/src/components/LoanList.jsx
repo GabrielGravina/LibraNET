@@ -86,6 +86,10 @@ function LoanList(props) {
                                 <button onClick={() => console.log("Pagar Multa")}>
                                     Pagar Multa
                                 </button>
+                                <button className="edit-button" onClick={() => handleEditButton}>
+                                    Editar
+                                </button>
+
                             </div>
                 
 

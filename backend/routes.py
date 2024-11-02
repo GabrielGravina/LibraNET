@@ -100,6 +100,7 @@ def get_emprestimos():
         result.append(emprestimo_data)
     return jsonify(result), 200
 
+# Busca um empréstimo específico pelo ID
 @app.route("/api/emprestimo/<int:emprestimo_id>", methods=["GET"])
 def get_emprestimo_by_id(emprestimo_id):
     emprestimo = Emprestimo.query.get(emprestimo_id)
@@ -229,17 +230,28 @@ def update_emprestimo(id):
             return jsonify({"error": "Empréstimo não encontrado."}), 404
 
         data = request.json
+
+        # Atualiza o campo status, se fornecido
         if "status" in data:
             emprestimo.status = data["status"]
-        if "multa" in data:
-            emprestimo.multa = data["multa"]
+        
+        # Atualiza o campo devolvido, se fornecido
         if "devolvido" in data:
             emprestimo.devolvido = data["devolvido"]
+        
+        # Atualiza o campo multa
+        if "multa" in data:
+            if isinstance(emprestimo.multa, list):
+                # Adiciona uma nova multa à coleção, criando um novo objeto Multa
+                emprestimo.multa.append(Multa(valor=data["multa"]))
+            else:
+                # Retorna erro se 'multa' não for uma coleção
+                return jsonify({"error": "Campo 'multa' não é uma coleção."}), 400
 
+        # Salva as alterações no banco de dados
         db.session.commit()
         return jsonify({"msg": "Empréstimo atualizado com sucesso."}), 200
+
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
-
-

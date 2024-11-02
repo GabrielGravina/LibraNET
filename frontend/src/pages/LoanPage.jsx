@@ -67,54 +67,68 @@ export default function LoanPage() {
 
             {/* Informações do Empréstimo */}
             {loanData && (
-                <div>
-                    <h3>Informações do Empréstimo</h3>
-                    <p><strong>ID:</strong> {loanData.emprestimo_id}</p>
-                    <p><strong>Nome do Usuário:</strong> {loanData.usuario_nome}</p>
-                    <p><strong>Data do Empréstimo:</strong> {loanData.data_emprestimo}</p>
-                    <p><strong>Data de Devolução:</strong> {loanData.data_devolucao}</p>
-                    <p><strong>Devolvido:</strong> {loanData.devolvido ? 'Sim' : 'Não'}</p>
-                    <h3>Editar Informações</h3>
+                <div className="flex-col mb-6 p-4 bg-gray-100 rounded-md items-center">
+                    <h3 className="text-gray-600 text-2xl ">Informações do Empréstimo: </h3>
+                    <p className="text-gray-600 text-3xl">Nome do Usuário: {loanData.usuario_nome}</p>
+                    <p className="text-gray-600"><strong>ID:</strong> {loanData.emprestimo_id}</p>
+                    <p className="text-gray-600"><strong>Data do Empréstimo:</strong> {loanData.data_emprestimo}</p>
+                    <p className="text-gray-600"><strong>Data de Devolução:</strong> {loanData.data_devolucao}</p>
+                    <p className="text-gray-600"><strong>Devolvido:</strong> {loanData.devolvido ? 'Sim' : 'Não'}</p>
+                    <p className="text-gray-600">Multa: {loanData.multa || "Sem multa"}</p>
+
+
+                    {console.log(loanData.multa)}
+                    
                 </div>
             )}
 
-            <form onSubmit={handleUpdateLoan}>
+           {/* Formulário de Edição */}
+           <form onSubmit={handleUpdateLoan} className="space-y-4">
+           <h3 className="">Editar Informações</h3>
                 {/* Campo para marcar devolução */}
-                <label>
-                    Devolvido:
+                <div className="flex items-center justify-center">
+                    <label className="mr-2">Devolvido:</label>
                     <input
                         type="checkbox"
                         name="devolvido"
                         checked={loanData.devolvido}
                         onChange={handleChange}
+                        className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
-                </label>
+                </div>
 
                 {/* Campo para editar data de devolução */}
-                <label>
-                    Data de Devolução:
+                <div>
+                    <label className="block">Data de Devolução:</label>
                     <input
                         type="date"
                         name="data_devolucao"
                         value={loanData.data_devolucao?.split("T")[0] || ""}
                         onChange={handleChange}
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     />
-                </label>
+                </div>
 
                 {/* Campo para ajustar o valor da multa */}
-                <label>
-                    Multa:
+                <div>
+                    <label className="block">Multa:</label>
                     <input
                         type="number"
                         name="multa"
                         value={loanData.multa || 0}
                         onChange={handleChange}
                         min="0"
+                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                     />
-                </label>
+                </div>
 
                 {/* Botão para enviar as alterações */}
-                <button type="submit">Salvar Alterações</button>
+                <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                >
+                    Salvar Alterações
+                </button>
             </form>
         </div>
     );

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import '../styles/Navbar.css'
 
 function Navbar() {
@@ -8,7 +9,14 @@ function Navbar() {
                 <h1>LibraNET</h1>
                 <ul>
                 <li><a>Pesquisar Empréstimo</a></li>
-                <li><a>Pesquisar Livros</a></li>
+                <li>
+                    <Link
+                        to={`/livros/`}
+                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                    > Pesquisar Livros
+                        
+                    </Link>
+                </li>
                 <li><a>Sobre</a></li>    
                 </ul>
                 

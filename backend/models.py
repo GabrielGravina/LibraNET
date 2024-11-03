@@ -19,7 +19,11 @@ class Livro(db.Model):
     titulo = db.Column(db.String(200), nullable=False)
     autor = db.Column(db.String(100), nullable=False)
     prateleira = db.Column(db.String(50), nullable=False)
+    ano_publicado = db.Column(db.String(10))
+    disponivel = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(50))
     biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
+    
     emprestimos = db.relationship('Emprestimo', backref='livro', lazy=True)
 
     def to_json(self):
@@ -28,7 +32,9 @@ class Livro(db.Model):
             "titulo": self.titulo,
             "autor": self.autor,
             "prateleira": self.prateleira,
-            "biblioteca_id": self.biblioteca_id
+            "biblioteca_id": self.biblioteca_id,
+            "ano_publicado": self.ano_publicado,
+            "disponivel": self.disponivel
         }
 
 class Usuario(db.Model):

@@ -29,13 +29,42 @@ def create_biblioteca():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+    
+    
+#----------------------------------------------------
+# CRUD para Livros -----------------------------------
 
-# CRUD para Livros
+
 @app.route("/api/livros", methods=["GET"])
 def get_livros():
     livros = Livro.query.all()
     result = [livro.to_json() for livro in livros]
     return jsonify(result), 200
+
+
+@app.route("/api/livros/<int:id>", methods=["GET"])
+def get_livros_by_id(id):
+    try:
+        # Busca livro pelo ID especificado
+        livro = Livro.query.get(id)  # Obtém o livro com o ID fornecido
+        
+        if livro is None:
+            return jsonify([]), 404  # Retorna uma lista vazia se o livro não for encontrado
+        
+        # Transforma o livro em um dicionário para facilitar a serialização em JSON
+        livro_data = {
+            "id": livro.id,
+            "titulo": livro.titulo,
+            "autor": livro.autor,
+            "ano_publicado": livro.ano_publicado,
+            "disponivel": livro.disponivel
+        }
+        
+        # Retorna o livro no formato JSON
+        return jsonify([livro_data]), 200  # Retorna como uma lista com um único livro
+    except Exception as e:
+        # Tratamento de erros
+        return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
 
 @app.route("/api/livros", methods=["POST"])
 def create_livro():
@@ -58,6 +87,33 @@ def create_livro():
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/livros/<int:id>", methods=["PATCH"])
+def update_livro(id):
+    data = request.json
+
+    livro = Livro.query.get(id)
+    if not livro:
+        return jsonify({"error": "Livro não encontrado."}), 404
+    
+    if 'titulo' in data:
+        livro.titulo = data['titulo']
+    if 'autor' in data:
+        livro.autor = data['autor']
+    if 'ano_publicado' in data:
+        livro.ano_publicado = data['ano_publicado']
+    if 'disponivel' in data:
+        livro.disponivel = data['disponivel']
+    if 'status' in data:
+        livro.status = data['status']
+
+    try:
+        db.session.commit()
+        return jsonify({"message": "Livro atualizado com sucesso.", "livro": livro.to_json()}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Erro ao atualizar o livro.", "details": str(e)}), 500
+
+#----------------------------------
 # CRUD para Usuários
 @app.route("/api/usuarios", methods=["GET"])
 def get_usuarios():
@@ -127,26 +183,40 @@ def get_emprestimo_by_id(emprestimo_id):
     return jsonify(emprestimo_data), 200
 
 @app.route("/api/emprestimos", methods=["POST"])
-def create_emprestimo():
+def criar_emprestimo():
+    data = request.get_json()
+    livro_id = data.get("livro_id")
+    usuario_id = data.get("usuario_id")
+
+    # Verificação se o livro existe e está disponível
+    livro = Livro.query.get(livro_id)
+    if not livro:
+        return jsonify({"error": "Livro não encontrado."}), 404
+    
+    if not livro.disponivel:
+        return jsonify({"error": "O livro já está emprestado."}), 400
+
+    # Criação do empréstimo
+    novo_emprestimo = Emprestimo(
+        livro_id=livro_id,
+        usuario_id=usuario_id,
+        data_emprestimo=datetime.utcnow(),
+        devolvido=False
+    )
+    
+    # Atualização da disponibilidade do livro para False
+    livro.disponivel = False
+
+    # Commit das alterações
     try:
-        data = request.json
-        livro_id = data.get("livro_id")
-        usuario_id = data.get("usuario_id")
-        prazo_dias = data.get("prazo_dias", 7)  # Prazo padrão de 7 dias
-        devolvido = data.get("devolvido")
-
-        if not livro_id or not usuario_id:
-            return jsonify({"error": "Missing required fields"}), 400
-
-        data_devolucao = datetime.utcnow() #+ timedelta(days=prazo_dias)
-        emprestimo = Emprestimo(livro_id=livro_id, usuario_id=usuario_id, data_devolucao=data_devolucao, devolvido=devolvido)
-        db.session.add(emprestimo)
+        db.session.add(novo_emprestimo)
         db.session.commit()
-
-        return jsonify({"msg": "Empréstimo criado com sucesso"}), 201
+        return jsonify(novo_emprestimo.to_json()), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Erro ao criar o empréstimo.", "details": str(e)}), 500
+    
+
 
 @app.route("/api/usuarios/emprestimos/nome/<string:nome>", methods=["GET"])
 def buscar_emprestimos_por_nome(nome):

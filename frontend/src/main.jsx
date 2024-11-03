@@ -8,7 +8,8 @@ import HomePage from './pages/HomePage'
 import LoanPage from './pages/LoanPage'
 import EditLoanPage from './pages/EditLoanPage'
 import NotFoundPage from './pages/NotFoundPage'
-import BookPage from './pages/BookPage'
+import EditBookPage from './pages/EditBookPage'
+import BooksPage from './pages/BooksPage'
 
 const router = createBrowserRouter([
   {
@@ -25,8 +26,12 @@ const router = createBrowserRouter([
     element: <LoanPage />
   },
   {
-    path: '/livros/:livroId',
-    element: <BookPage />
+    path: '/livros',
+    element: <BooksPage />
+  },
+  {
+    path: '/livros/:livro_id',
+    element: <EditBookPage />
   }
 
 ])

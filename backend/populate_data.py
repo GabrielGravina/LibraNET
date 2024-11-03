@@ -24,8 +24,8 @@ def populate_data(db):
     db.session.commit()  # Commit após adicionar usuários
 
     # Criar livros
-    livro1 = Livro(titulo="Livro de Teste 1", autor="Autor 1", prateleira="A1", biblioteca_id=biblioteca1.id)
-    livro2 = Livro(titulo="Livro de Teste 2", autor="Autor 2", prateleira="B2", biblioteca_id=biblioteca2.id)
+    livro1 = Livro(titulo="Livro de Teste 1", autor="Autor 1", prateleira="A1", biblioteca_id=biblioteca1.id, ano_publicado="1998")
+    livro2 = Livro(titulo="Livro de Teste 2", autor="Autor 2", prateleira="B2", biblioteca_id=biblioteca2.id, ano_publicado="2009")
     db.session.add_all([livro1, livro2])
     db.session.commit()  # Commit após adicionar livros
 

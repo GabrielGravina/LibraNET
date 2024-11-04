@@ -19,6 +19,7 @@ class Livro(db.Model):
     titulo = db.Column(db.String(200), nullable=False)
     autor = db.Column(db.String(100), nullable=False)
     prateleira = db.Column(db.String(50), nullable=False)
+    categoria = db.Column(db.String(50), nullable=False)
     ano_publicado = db.Column(db.String(10))
     disponivel = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(50))

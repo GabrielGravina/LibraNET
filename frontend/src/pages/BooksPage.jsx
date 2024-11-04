@@ -9,6 +9,8 @@ export default function BookPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [bibliotecas, setBibliotecas] = useState([]); // Estado para armazenar as bibliotecas
   const [selectedBiblioteca, setSelectedBiblioteca] = useState(""); // Estado para armazenar a biblioteca selecionada
+  const [selectedCategoria, setSelectedCategoria] = useState(""); // Estado para armazenar a categoria selecionada
+  const categorias = ["Ação", "Fantasia", "Ficção Científica", "Romance", "Terror"]; // Adicione suas categorias aqui
 
   // Função para buscar todos os livros e bibliotecas disponíveis no back-end
   useEffect(() => {
@@ -26,6 +28,7 @@ export default function BookPage() {
       try {
         const response = await fetch(`http://127.0.0.1:5000/api/livros`);
         const data = await response.json();
+        console.log("Livros recebidos:", data); // Debugging: Verifique os dados recebidos
         setResults(data);
         setFilteredResults(data); // Inicia com todos os livros filtrados
       } catch (error) {
@@ -39,35 +42,35 @@ export default function BookPage() {
     fetchLivros();
   }, []);
 
+  // Função de filtragem
+  const filterResults = (livros) => {
+    return livros.filter((livro) => {
+      const matchesName = livro.titulo.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesBiblioteca = selectedBiblioteca ? livro.biblioteca_nome === selectedBiblioteca : true; // Se nenhuma biblioteca está selecionada, inclui todos
+      const matchesCategoria = selectedCategoria ? livro.categoria === selectedCategoria : true; // Se nenhuma categoria está selecionada, inclui todos
+
+      return matchesName && matchesBiblioteca && matchesCategoria;
+    });
+  };
+
+  // Efeito para atualizar resultados filtrados sempre que o estado mudar
+  useEffect(() => {
+    const updatedFilteredResults = filterResults(results);
+    setFilteredResults(updatedFilteredResults);
+    console.log("Resultados filtrados atualizados:", updatedFilteredResults); // Debugging: Verifique os resultados filtrados
+  }, [searchTerm, selectedBiblioteca, selectedCategoria, results]);
+
   const handleSearch = (event) => {
     const name = event.target.value;
     setSearchTerm(name);
-
-    // Filtra os livros com base no nome e na biblioteca selecionada
-    const filtered = results.filter((livro) => {
-      const matchesName = livro.titulo.toLowerCase().includes(name.toLowerCase());
-      const matchesBiblioteca = selectedBiblioteca
-        ? livro.biblioteca_nome === selectedBiblioteca
-        : true; // Se nenhuma biblioteca está selecionada, inclui todos
-
-      return matchesName && matchesBiblioteca;
-    });
-
-    setFilteredResults(filtered); // Atualiza a lista filtrada
   };
 
   const handleBibliotecaSelection = (bibliotecaId) => {
     setSelectedBiblioteca(bibliotecaId);
-    
-    // Filtra novamente os livros com base na biblioteca selecionada
-    const filtered = results.filter((livro) => {
-      const matchesName = livro.titulo.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesBiblioteca = bibliotecaId ? livro.biblioteca_nome === bibliotecaId : true; // Inclui todos se nenhuma biblioteca estiver selecionada
+  };
 
-      return matchesName && matchesBiblioteca;
-    });
-
-    setFilteredResults(filtered); // Atualiza a lista filtrada
+  const handleCategoriaSelection = (categoria) => {
+    setSelectedCategoria(categoria);
   };
 
   return (
@@ -115,6 +118,40 @@ export default function BookPage() {
         </div>
       </div>
 
+      {/* Seção de seleção de categorias usando radio buttons */}
+      <div className="mb-4">
+        <h4>Filtrar por Categoria:</h4>
+        <div>
+          <label>
+            <input
+              type="radio"
+              name="categoria"
+              value=""
+              checked={selectedCategoria === ""}
+              onChange={() => handleCategoriaSelection("")}
+              className="mr-2"
+            />
+            Todas
+          </label>
+          {categorias.map((categoria) => (
+            <div key={categoria} className="flex items-center mb-2">
+              <input
+                type="radio"
+                id={`categoria-${categoria}`}
+                name="categoria"
+                value={categoria}
+                onChange={() => handleCategoriaSelection(categoria)}
+                checked={selectedCategoria === categoria}
+                className="mr-2"
+              />
+              <label htmlFor={`categoria-${categoria}`}>
+                {categoria}
+              </label>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="loan-list">
         <h2 className="text-2xl font-bold mb-2">Lista de livros:</h2>
         <ul>
@@ -122,6 +159,7 @@ export default function BookPage() {
             <li key={result.id} className="mb-4 mt-4 p-4 bg-gray-100 rounded-md shadow text-gray-600">
               <p><strong>Título:</strong> {result.titulo}</p>
               <p><strong>Autor:</strong> {result.autor}</p>
+              <p><strong>Categoria:</strong> {result.categoria}</p>
               <p><strong>Ano de publicação:</strong> {result.ano_publicado}</p>
               <p><strong>Disponível:</strong> {result.disponivel ? "Sim" : "Não"}</p>
               <p><strong>Status:</strong> {result.status}</p>

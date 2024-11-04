@@ -46,6 +46,7 @@ def get_livros():
         'ano_publicado': livro.ano_publicado,
         'disponivel': livro.disponivel,
         'status': livro.status,
+        'categoria': livro.categoria,
         'biblioteca_nome': livro.biblioteca.nome  # Supondo que o nome da biblioteca está acessível
     } for livro in livros])
 

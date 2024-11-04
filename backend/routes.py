@@ -34,12 +34,21 @@ def create_biblioteca():
 #----------------------------------------------------
 # CRUD para Livros -----------------------------------
 
-
-@app.route("/api/livros", methods=["GET"])
+# Isso filtra os resultados para a biblioteca selecionada
+@app.route('/api/livros', methods=['GET'])
 def get_livros():
     livros = Livro.query.all()
-    result = [livro.to_json() for livro in livros]
-    return jsonify(result), 200
+
+    return jsonify([{
+        'id': livro.id,
+        'titulo': livro.titulo,
+        'autor': livro.autor,
+        'ano_publicado': livro.ano_publicado,
+        'disponivel': livro.disponivel,
+        'status': livro.status,
+        'biblioteca_nome': livro.biblioteca.nome  # Supondo que o nome da biblioteca está acessível
+    } for livro in livros])
+
 
 @app.route("/api/livros/<string:titulo>", methods=["GET"])
 def get_livros_by_title(titulo):

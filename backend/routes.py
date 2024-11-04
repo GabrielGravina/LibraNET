@@ -66,29 +66,29 @@ def get_livros_by_title(titulo):
     except Exception as e:
         return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
 
-# @app.route("/api/livros/<int:id>", methods=["GET"])
-# def get_livros_by_id(id):
-#     try:
-#         # Busca livro pelo ID especificado
-#         livro = Livro.query.get(id)  # Obtém o livro com o ID fornecido
+@app.route("/api/livro/<int:id>", methods=["GET"])
+def get_livro_by_id(id):
+    try:
+        # Busca livro pelo ID especificado
+        livro = Livro.query.get(id)  # Obtém o livro com o ID fornecido
         
-#         if livro is None:
-#             return jsonify([]), 404  # Retorna uma lista vazia se o livro não for encontrado
+        if livro is None:
+            return jsonify([]), 404  # Retorna uma lista vazia se o livro não for encontrado
         
-#         # Transforma o livro em um dicionário para facilitar a serialização em JSON
-#         livro_data = {
-#             "id": livro.id,
-#             "titulo": livro.titulo,
-#             "autor": livro.autor,
-#             "ano_publicado": livro.ano_publicado,
-#             "disponivel": livro.disponivel
-#         }
+        # Transforma o livro em um dicionário para facilitar a serialização em JSON
+        livro_data = {
+            "id": livro.id,
+            "titulo": livro.titulo,
+            "autor": livro.autor,
+            "ano_publicado": livro.ano_publicado,
+            "disponivel": livro.disponivel
+        }
         
-#         # Retorna o livro no formato JSON
-#         return jsonify([livro_data]), 200  # Retorna como uma lista com um único livro
-#     except Exception as e:
-#         # Tratamento de erros
-#         return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
+        # Retorna o livro no formato JSON
+        return jsonify([livro_data]), 200  # Retorna como uma lista com um único livro
+    except Exception as e:
+        # Tratamento de erros
+        return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
 
 @app.route("/api/livros", methods=["POST"])
 def create_livro():

@@ -41,30 +41,54 @@ def get_livros():
     result = [livro.to_json() for livro in livros]
     return jsonify(result), 200
 
-
-@app.route("/api/livros/<int:id>", methods=["GET"])
-def get_livros_by_id(id):
+@app.route("/api/livros/<string:titulo>", methods=["GET"])
+def get_livros_by_title(titulo):
     try:
-        # Busca livro pelo ID especificado
-        livro = Livro.query.get(id)  # Obtém o livro com o ID fornecido
+        # Filtrar o título de forma case-insensitive
+        livros = Livro.query.filter(Livro.titulo.ilike(f"%{titulo}%")).all()
         
-        if livro is None:
-            return jsonify([]), 404  # Retorna uma lista vazia se o livro não for encontrado
+        # Verificar se a lista de livros está vazia
+        if not livros:
+            return jsonify({"error": "Livro não encontrado"}), 404
         
-        # Transforma o livro em um dicionário para facilitar a serialização em JSON
-        livro_data = {
-            "id": livro.id,
-            "titulo": livro.titulo,
-            "autor": livro.autor,
-            "ano_publicado": livro.ano_publicado,
-            "disponivel": livro.disponivel
-        }
-        
-        # Retorna o livro no formato JSON
-        return jsonify([livro_data]), 200  # Retorna como uma lista com um único livro
+        # Retornar dados dos livros
+        livros_data = [
+            {
+                "id": livro.id,
+                "titulo": livro.titulo,
+                "autor": livro.autor,
+                "ano_publicado": livro.ano_publicado,
+                "disponivel": livro.disponivel
+            }
+            for livro in livros
+        ]
+        return jsonify(livros_data), 200
     except Exception as e:
-        # Tratamento de erros
         return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
+
+# @app.route("/api/livros/<int:id>", methods=["GET"])
+# def get_livros_by_id(id):
+#     try:
+#         # Busca livro pelo ID especificado
+#         livro = Livro.query.get(id)  # Obtém o livro com o ID fornecido
+        
+#         if livro is None:
+#             return jsonify([]), 404  # Retorna uma lista vazia se o livro não for encontrado
+        
+#         # Transforma o livro em um dicionário para facilitar a serialização em JSON
+#         livro_data = {
+#             "id": livro.id,
+#             "titulo": livro.titulo,
+#             "autor": livro.autor,
+#             "ano_publicado": livro.ano_publicado,
+#             "disponivel": livro.disponivel
+#         }
+        
+#         # Retorna o livro no formato JSON
+#         return jsonify([livro_data]), 200  # Retorna como uma lista com um único livro
+#     except Exception as e:
+#         # Tratamento de erros
+#         return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
 
 @app.route("/api/livros", methods=["POST"])
 def create_livro():

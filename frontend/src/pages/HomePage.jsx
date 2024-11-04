@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import Navbar from './components/Navbar';
-import FineManagement from './components/FineManagement';
-import UserSearchBar from './components/UserSearchBar';
-import LoginControl from './components/LoginControl'
-import LoanList from './components/LoanList';
-import './App.css';
-import SearchBar from './components/SearchBar';
+import Navbar from '../components/Navbar';
+import FineManagement from '../components/FineManagement';
+import UserSearchBar from '../components/UserSearchBar';
+import LoginControl from '../components/LoginControl'
+import LoanList from '../components/LoanList';
+import '../App.css';
+import SearchBar from '../components/SearchBar';
 
-function App() {
+
+
+function HomePage() {
   // Estado para simular o tipo de usuário. true representa um admin.
   const [isAdmin, setIsAdmin] = useState(false); // Ajuste para true se quiser testar como admin
   
-  
+
   const toggleAdmin = () => {
     setIsAdmin(!isAdmin)
   }
@@ -30,4 +32,4 @@ function App() {
   );
 }
 
-export default App;
+export default HomePage;

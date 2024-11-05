@@ -19,14 +19,16 @@ class Livro(db.Model):
     titulo = db.Column(db.String(200), nullable=False)
     autor = db.Column(db.String(100), nullable=False)
 
-    #prateleira = db.Column(db.String(50), nullable=False)
+    # Removido o campo prateleira como string, agora usando relacionamento com a tabela Prateleira
+    prateleira_id = db.Column(db.Integer, db.ForeignKey('prateleira.id'), nullable=False)
+    prateleira = db.relationship('Prateleira', backref='livros', lazy=True)
+
     categoria = db.Column(db.String(50), nullable=False)
     ano_publicado = db.Column(db.String(10))
     disponivel = db.Column(db.Boolean, default=False)
     status = db.Column(db.String(50))
 
     biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
-    
     emprestimos = db.relationship('Emprestimo', backref='livro', lazy=True)
 
     def to_json(self):
@@ -34,14 +36,14 @@ class Livro(db.Model):
             "id": self.id,
             "titulo": self.titulo,
             "autor": self.autor,
-
-            #"prateleira": self.prateleira,
-
-            "prateleira": self.prateleira,
+            "prateleira": {
+                "id": self.prateleira.id,
+                "codigo": self.prateleira.codigo,
+                "localizacao": self.prateleira.localizacao
+            },
             "biblioteca_id": self.biblioteca_id,
             "ano_publicado": self.ano_publicado,
             "disponivel": self.disponivel
-
         }
 
 class Usuario(db.Model):
@@ -92,32 +94,29 @@ class Multa(db.Model):
         }
 
 class Prateleira(db.Model):
-    id_prateleira = db.Column(db.Integer, Primary_key=True)
-    codigo = db.Column(db.String(50), )
-    localizacao = db.Column(db.String(255), )
-    biblioteca_id = db.Column(db.Integer, )
-    biblioteca = db.relationship('Biblioteca', backref='prateleira', lazy=True)
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(50), nullable=False)
+    localizacao = db.Column(db.String(255), nullable=False)
+    biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
 
     def to_json(self):
         return {
-            "idPrateleira": self.id_prateleira,
+            "id": self.id,
             "codigo": self.codigo,
-            "localizacao": self.localizacao,
-            "bibliotecaId": self.biblioteca_id,
+            "localizacao": self.localizacao
         }
-    
-class Reserva(db.Model):
-    reserva_id = db.Column(db.Integer, Primary_key=True)
-    usuario_id = db.Column(db.Integer, nullable=False)
-    livro_id = db.Column(db.Integer, nullable=False)
-    data_reserva = db.Column(db.DateTime, nullable=False)
-    data_validade = db.Column(db.DateTime, nullable=False)
+# class Reserva(db.Model):
+#     reserva_id = db.Column(db.Integer, Primary_key=True)
+#     usuario_id = db.Column(db.Integer, nullable=False)
+#     livro_id = db.Column(db.Integer, nullable=False)
+#     data_reserva = db.Column(db.DateTime, nullable=False)
+#     data_validade = db.Column(db.DateTime, nullable=False)
 
-    def to_json(self):
-        return {
-            "reservaId": self.reserva_id,
-            "usuarioId": self.usuario_id,
-            "livroId": self.livro_id,
-            "dataReserva": self.data_reserva,
-            "dataValidade": self.data_validade
-        }
+#     def to_json(self):
+#         return {
+#             "reservaId": self.reserva_id,
+#             "usuarioId": self.usuario_id,
+#             "livroId": self.livro_id,
+#             "dataReserva": self.data_reserva,
+#             "dataValidade": self.data_validade
+#         }

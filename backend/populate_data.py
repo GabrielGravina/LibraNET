@@ -1,4 +1,4 @@
-from models import Biblioteca, Livro, Usuario, Emprestimo
+from models import Biblioteca, Livro, Usuario, Emprestimo, Prateleira
 from datetime import datetime, timedelta
 
 def populate_data(db):
@@ -6,6 +6,7 @@ def populate_data(db):
     db.session.query(Emprestimo).delete()
     db.session.query(Livro).delete()
     db.session.query(Usuario).delete()
+    db.session.query(Prateleira).delete()
     db.session.query(Biblioteca).delete()
     
     # Criar bibliotecas
@@ -14,6 +15,13 @@ def populate_data(db):
     biblioteca3 = Biblioteca(nome="Biblioteca Plaza", endereco="Rua C, 789")
     db.session.add_all([biblioteca1, biblioteca2, biblioteca3])
     db.session.commit()  # Commit após adicionar bibliotecas
+
+    # Criar prateleiras associadas às bibliotecas
+    prateleira1 = Prateleira(codigo="A1", localizacao="Primeiro andar - Setor A", biblioteca_id=biblioteca1.id)
+    prateleira2 = Prateleira(codigo="B2", localizacao="Segundo andar - Setor B", biblioteca_id=biblioteca2.id)
+    prateleira3 = Prateleira(codigo="C3", localizacao="Terceiro andar - Setor C", biblioteca_id=biblioteca3.id)
+    db.session.add_all([prateleira1, prateleira2, prateleira3])
+    db.session.commit()  # Commit após adicionar prateleiras
 
     # Criar usuários
     usuarios = [
@@ -24,10 +32,10 @@ def populate_data(db):
     db.session.add_all(usuarios)
     db.session.commit()  # Commit após adicionar usuários
 
-    # Criar livros
-    livro1 = Livro(titulo="Livro de Teste 1", autor="Autor 1", prateleira="A1", biblioteca_id=biblioteca1.id, categoria="Fantasia", ano_publicado="1998")
-    livro2 = Livro(titulo="Livro de Teste 2", autor="Autor 2", prateleira="B2", biblioteca_id=biblioteca2.id, categoria="Ação", ano_publicado="2009")
-    livro3 = Livro(titulo="Game of Thrones", autor="G. R. R. Martin", prateleira="B2", biblioteca_id=biblioteca2.id, categoria="Ação", ano_publicado="2009")
+    # Criar livros associados a prateleiras específicas
+    livro1 = Livro(titulo="Livro de Teste 1", autor="Autor 1", prateleira_id=prateleira1.id, biblioteca_id=biblioteca1.id, categoria="Fantasia", ano_publicado="1998")
+    livro2 = Livro(titulo="Livro de Teste 2", autor="Autor 2", prateleira_id=prateleira2.id, biblioteca_id=biblioteca2.id, categoria="Ação", ano_publicado="2009")
+    livro3 = Livro(titulo="Game of Thrones", autor="G. R. R. Martin", prateleira_id=prateleira2.id, biblioteca_id=biblioteca2.id, categoria="Ação", ano_publicado="2009")
     
     db.session.add_all([livro1, livro2, livro3])
     db.session.commit()  # Commit após adicionar livros

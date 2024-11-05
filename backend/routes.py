@@ -1,6 +1,6 @@
 from app import app, db
 from flask import request, jsonify
-from models import Biblioteca, Livro, Usuario, Emprestimo, Multa
+from models import Biblioteca, Livro, Usuario, Emprestimo, Multa, Prateleira
 from datetime import datetime, timedelta
 
 
@@ -367,3 +367,22 @@ def update_emprestimo(id):
     db.session.commit()
 
     return jsonify(emprestimo.to_json()), 200
+
+
+# Prateleiras
+# Endpoint para retornar as prateleiras de uma biblioteca pelo ID
+@app.route('/api/bibliotecas/<int:biblioteca_id>/prateleiras', methods=['GET'])
+def get_prateleiras(biblioteca_id):
+    # Buscar biblioteca pelo ID
+    biblioteca = Biblioteca.query.get(biblioteca_id)
+
+    if biblioteca is None:
+        return jsonify({'error': 'Biblioteca não encontrada'}), 404
+
+    # Buscar as prateleiras associadas à biblioteca
+    prateleiras = Prateleira.query.filter_by(biblioteca_id=biblioteca_id).all()
+
+    # Serializar os dados das prateleiras
+    prateleiras_json = [prateleira.to_json() for prateleira in prateleiras]
+
+    return jsonify(prateleiras_json), 200

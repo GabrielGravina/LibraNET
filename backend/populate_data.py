@@ -11,7 +11,8 @@ def populate_data(db):
     # Criar bibliotecas
     biblioteca1 = Biblioteca(nome="Biblioteca Central", endereco="Rua A, 123")
     biblioteca2 = Biblioteca(nome="Biblioteca Secundária", endereco="Rua B, 456")
-    db.session.add_all([biblioteca1, biblioteca2])
+    biblioteca3 = Biblioteca(nome="Biblioteca Plaza", endereco="Rua C, 789")
+    db.session.add_all([biblioteca1, biblioteca2, biblioteca3])
     db.session.commit()  # Commit após adicionar bibliotecas
 
     # Criar usuários
@@ -24,9 +25,11 @@ def populate_data(db):
     db.session.commit()  # Commit após adicionar usuários
 
     # Criar livros
-    livro1 = Livro(titulo="Livro de Teste 1", autor="Autor 1", prateleira="A1", biblioteca_id=biblioteca1.id)
-    livro2 = Livro(titulo="Livro de Teste 2", autor="Autor 2", prateleira="B2", biblioteca_id=biblioteca2.id)
-    db.session.add_all([livro1, livro2])
+    livro1 = Livro(titulo="Livro de Teste 1", autor="Autor 1", prateleira="A1", biblioteca_id=biblioteca1.id, categoria="Fantasia", ano_publicado="1998")
+    livro2 = Livro(titulo="Livro de Teste 2", autor="Autor 2", prateleira="B2", biblioteca_id=biblioteca2.id, categoria="Ação", ano_publicado="2009")
+    livro3 = Livro(titulo="Game of Thrones", autor="G. R. R. Martin", prateleira="B2", biblioteca_id=biblioteca2.id, categoria="Ação", ano_publicado="2009")
+    
+    db.session.add_all([livro1, livro2, livro3])
     db.session.commit()  # Commit após adicionar livros
 
     # Criar empréstimos

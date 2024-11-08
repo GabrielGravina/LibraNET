@@ -1,5 +1,2 @@
-function SearchBar () {
-
-
-}
-export default SearchBar
+function SearchBar() {}
+export default SearchBar;

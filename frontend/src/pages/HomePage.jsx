@@ -1,35 +1,30 @@
-import { useState } from 'react';
-import Navbar from '../components/Navbar';
-import FineManagement from '../components/FineManagement';
-import UserSearchBar from '../components/UserSearchBar';
-import LoginControl from '../components/LoginControl'
-import LoanList from '../components/LoanList';
-import '../App.css';
-import SearchBar from '../components/SearchBar';
-
-
+import { useState } from "react";
+import FineManagement from "../components/FineManagement";
+import LoanList from "../components/LoanList";
+import LoginControl from "../components/LoginControl";
+import Navbar from "../components/Navbar";
+import UserSearchBar from "../components/UserSearchBar";
+import "../App.css";
+import SearchBar from "../components/SearchBar";
 
 function HomePage() {
-  // Estado para simular o tipo de usuário. true representa um admin.
-  const [isAdmin, setIsAdmin] = useState(false); // Ajuste para true se quiser testar como admin
-  
+	// Estado para simular o tipo de usuário. true representa um admin.
+	const [isAdmin, setIsAdmin] = useState(false); // Ajuste para true se quiser testar como admin
 
-  const toggleAdmin = () => {
-    setIsAdmin(!isAdmin)
-  }
+	const toggleAdmin = () => {
+		setIsAdmin(!isAdmin);
+	};
 
-  return (
-    <>
-      <Navbar />
+	return (
+		<>
+			<Navbar />
 
-      <LoginControl isAdmin={isAdmin} toggleAdmin={toggleAdmin} />
-      <LoanList
-        isAdmin={isAdmin}
-      />
-      <SearchBar />
-      {console.log(isAdmin)}
-    </>
-  );
+			<LoginControl isAdmin={isAdmin} toggleAdmin={toggleAdmin} />
+			<LoanList isAdmin={isAdmin} />
+			<SearchBar />
+			{console.log(isAdmin)}
+		</>
+	);
 }
 
 export default HomePage;

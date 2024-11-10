@@ -23,13 +23,13 @@ def populate_data(db):
     db.session.add_all([prateleira1, prateleira2, prateleira3])
     db.session.commit()  # Commit após adicionar prateleiras
 
-    # Criar usuários
+    # Criar usuários com Alice como administradora
     usuarios = [
-        Usuario(nome="Alice", cpf="12345678901"),
-        Usuario(nome="Bob", cpf="23456789012"),
-        Usuario(nome="Carol", cpf="34567890123"),
-        Usuario(nome="Daniel", cpf="45678901234"),
-        Usuario(nome="Eva", cpf="56789012345")
+        Usuario(nome="Alice", cpf="12345678901", senha='123', admin=True),  # Alice definida como admin
+        Usuario(nome="Bob", senha="1234", cpf="23456789012"),
+        Usuario(nome="Carol", senha="13", cpf="34567890123"),
+        Usuario(nome="Daniel", senha="1113",  cpf="45678901234"),
+        Usuario(nome="Eva", senha="adga23", cpf="56789012345")
     ]
     db.session.add_all(usuarios)
     db.session.commit()  # Commit após adicionar usuários

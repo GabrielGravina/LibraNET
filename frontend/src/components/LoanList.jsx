@@ -81,7 +81,7 @@ function LoanList(props) {
 						? "Todos os dados dos empréstimos"
 						: "Empréstimos:"}
 				</p>
-				<ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-4/5 mx-auto">
+				<ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-4/5 mx-auto p-12">
 					{results.map((result) => (
 						<li
 							key={result.emprestimo_id}

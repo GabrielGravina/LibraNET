@@ -46,17 +46,22 @@ class Livro(db.Model):
             "disponivel": self.disponivel
         }
 
+# models.py ou onde está definido o modelo de dados
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
     cpf = db.Column(db.String(11), unique=True, nullable=False)
+    senha = db.Column(db.String(128), nullable=False)  # Senha do usuário
+    admin = db.Column(db.Boolean, default=False)       # Propriedade admin
     emprestimos = db.relationship('Emprestimo', backref='usuario', lazy=True)
 
     def to_json(self):
         return {
             "id": self.id,
             "nome": self.nome,
-            "cpf": self.cpf
+            "cpf": self.cpf,
+            "admin": self.admin,
+            "senha": self.senha
         }
 
 class Emprestimo(db.Model):

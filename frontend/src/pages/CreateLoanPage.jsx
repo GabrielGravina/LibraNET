@@ -1,0 +1,1 @@
+//[ ]: criar a página de criação de empréstimos. Utilizar o endpoint de criar empréstimos em routes.py

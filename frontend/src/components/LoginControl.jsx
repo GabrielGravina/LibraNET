@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+//[ ]: fazer a estilização da página para torná-la mais agradável
+
 function LoginControl() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);

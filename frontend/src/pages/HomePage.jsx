@@ -7,6 +7,8 @@ import UserSearchBar from "../components/UserSearchBar";
 import "../App.css";
 import SearchBar from "../components/SearchBar";
 
+//[ ]: melhorar a estilização. A mensagem de bem-vindo, por exemplo, pode ter um estilo melhor ou aparecer em outra parte do site. Colocar a cor dos textos com maior contraste.
+
 import womanReading from '../images/young-woman-reading-library.jpg'
 
 function HomePage() {

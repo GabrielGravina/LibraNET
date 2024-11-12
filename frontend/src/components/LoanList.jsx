@@ -60,38 +60,48 @@ function LoanList(props) {
 
 	return (
 		<>
-			<input
-				className="w-full p-2 mb-4 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500"
-				type="text"
-				placeholder="Pesquisar por nome do usuário"
-				value={searchTerm}
-				onChange={handleSearch}
-			/>
+			{/* Campo de pesquisa */}
+			<div className="mb-6">
+				<input
+					className="w-96 p-3 mb-4 border-2 border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:outline-none"
+					type="text"
+					placeholder="Pesquisar por nome do usuário"
+					value={searchTerm}
+					onChange={handleSearch}
+				/>
+			</div>
+
+			{/* Lista de Empréstimos */}
 			<div className="loan-list">
-				<h2 className="text-2xl font-bold mb-2">
+				<h2 className="text-3xl font-semibold mb-2 text-white">
 					Mostrando empréstimos do usuário:
 				</h2>
-				<p className="mb-4">
+				<p className="mb-4 text-white">
 					{props.isAdmin
-						? "Todos os dados do usuário"
-						: "Aqui os seus empréstimos"}
+						? "Todos os dados dos empréstimos"
+						: "Empréstimos:"}
 				</p>
-				<ul>
+				<ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-4/5 mx-auto p-12">
 					{results.map((result) => (
 						<li
 							key={result.emprestimo_id}
-							className="mb-4 p-4 bg-gray-100 rounded-md shadow text-gray-600"
+							className="bg-white shadow-md rounded-lg p-6 border border-gray-200 hover:shadow-lg transition duration-300"
 						>
-							<p>Usuário: {result.usuario_nome}</p>
-							<p>ID do empréstimo: {result.emprestimo_id}</p>
-							<p>Data do Empréstimo: {result.data_emprestimo}</p>
-							<p>Data de Devolução: {result.data_devolucao}</p>
-							<p>Status: {result.devolvido ? "Devolvido" : "Não devolvido"}</p>
+							<p className="font-medium text-lg text-gray-800">Usuário: {result.usuario_nome}</p>
+							<p className="text-sm text-gray-600">ID do empréstimo: {result.emprestimo_id}</p>
+							<p className="text-sm text-gray-600">Data do Empréstimo: {result.data_emprestimo}</p>
+							<p className="text-sm text-gray-600">Data de Devolução: {result.data_devolucao}</p>
+							<p
+								className={`text-sm font-semibold ${result.devolvido ? 'text-green-500' : 'text-red-500'}`}
+							>
+								Status: {result.devolvido ? "Devolvido" : "Não devolvido"}
+							</p>
+							{/* Mostrar botão editar apenas para admins */}
 							{props.isAdmin && (
-								<div className="mt-2 flex justify-center items-center">
+								<div className="mt-4 text-center">
 									<Link
 										to={`/emprestimo/${result.emprestimo_id}`}
-										className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+										className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300"
 									>
 										Editar Empréstimo
 									</Link>

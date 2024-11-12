@@ -10,6 +10,7 @@ import EditLoanPage from "./pages/EditLoanPage";
 import HomePage from "./pages/HomePage";
 import LoanPage from "./pages/LoanPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import LoginPage from "./pages/LoginPage";
 
 const router = createBrowserRouter([
 	{
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
 		path: "/livros/:livro_id",
 		element: <EditBookPage />,
 	},
+	{
+		path: "/login",
+		element: <LoginPage />
+	}
 ]);
 
 createRoot(document.getElementById("root")).render(

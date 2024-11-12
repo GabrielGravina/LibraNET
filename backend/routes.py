@@ -4,6 +4,7 @@ from models import Biblioteca, Livro, Usuario, Emprestimo, Multa, Prateleira
 from datetime import datetime, timedelta
 
 
+
 # CRUD para Bibliotecas
 @app.route("/api/bibliotecas", methods=["GET"])
 def get_bibliotecas():
@@ -149,6 +150,33 @@ def update_livro(id):
 
 #----------------------------------
 # CRUD para Usuários
+
+# No backend, no endpoint de login (assumindo que você já tem a validação de credenciais funcionando)
+@app.route("/login", methods=["POST"])
+def login():
+    # Obtém os dados do corpo da requisição
+    data = request.get_json()
+    cpf = data.get("cpf")
+    senha = data.get("senha")
+
+    # Verifique se o CPF e a senha foram fornecidos
+    if not cpf or not senha:
+        return jsonify({"error": "CPF e senha são obrigatórios!"}), 400
+
+    # Procure pelo usuário no banco de dados
+    usuario = Usuario.query.filter_by(cpf=cpf).first()
+
+    if usuario and usuario.senha == senha:
+        # Supondo que você tem um campo "isAdmin" ou uma lógica para isso
+        is_admin = usuario.cpf == "adminCpf"  # Altere conforme sua lógica para admin
+        return jsonify({
+            "cpf": usuario.cpf,
+            "nome": usuario.nome,
+            "admin": usuario.admin  # Envia o status de admin no retorno
+        })
+    else:
+        return jsonify({"error": "Credenciais inválidas!"}), 401
+
 @app.route("/api/usuarios", methods=["GET"])
 def get_usuarios():
     usuarios = Usuario.query.all()
@@ -161,11 +189,12 @@ def create_usuario():
         data = request.json
         nome = data.get("nome")
         cpf = data.get("cpf")
+        senha = data.get("senha")
 
         if not nome or not cpf:
             return jsonify({"error": "Missing required fields"}), 400
 
-        usuario = Usuario(nome=nome, cpf=cpf)
+        usuario = Usuario(nome=nome, cpf=cpf, senha=senha)
         db.session.add(usuario)
         db.session.commit()
 

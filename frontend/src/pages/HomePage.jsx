@@ -1,17 +1,9 @@
 import { useState, useEffect } from "react";
-import FineManagement from "../components/FineManagement";
-import LoanList from "../components/LoanList";
-import LoginControl from "../components/LoginControl";
 import Navbar from "../components/Navbar";
-import UserSearchBar from "../components/UserSearchBar";
-import "../App.css";
 import SearchBar from "../components/SearchBar";
+import OpeningBooks from "../images/OpeningBooks.png";
 
-//[ ]: melhorar a estilização. A mensagem de bem-vindo, por exemplo, pode ter um estilo melhor ou aparecer em outra parte do site. Colocar a cor dos textos com maior contraste.
-
-import womanReading from '../images/young-woman-reading-library.jpg'
-
-function HomePage() {
+export default function HomePage() {
   // Estado para verificar se o usuário está logado
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   // Estado para simular o tipo de usuário. true representa um admin.
@@ -32,20 +24,26 @@ function HomePage() {
     <>
       <Navbar />
       <section
-        className="w-full"
-        style={{
-          backgroundImage: `linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 179, 0, 0.3))`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          minHeight: '80vh' // Alterado de height para minHeight
-        }}
+        className="w-full flex flex-col items-center py-10 justify-start bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[90vh]"
       >
-        <LoginControl isLoggedIn={isLoggedIn} isAdmin={isAdmin} />
-        <LoanList isAdmin={isAdmin} />
+        <h1 className="text-7xl font-semibold ml-2 text-center">
+          Libra<span className="text-hard-orange">NET</span>
+        </h1>
+        
+        {/* Texto abaixo do título */}
+        <p className="text-xl max-w-4xl  text-center mt-4 text-black opacity-90">
+          Bem-vindo ao LibraNET, a plataforma que conecta você ao vasto mundo dos livros! 
+          Aqui, você pode explorar, buscar e gerenciar empréstimos de livros com facilidade. 
+          Se você é um ávido leitor, um estudante ou apenas quer expandir seus horizontes, 
+          temos o que você precisa. Navegue, descubra e comece sua jornada literária hoje mesmo.
+        </p>
+
+        <div className="self-center mt-6">
+          <img className="max-w-xl" src={OpeningBooks} alt="Opening Books" />
+        </div>
+        
         <SearchBar />
       </section>
     </>
   );
 }
-
-export default HomePage;

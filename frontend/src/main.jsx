@@ -11,6 +11,7 @@ import HomePage from "./pages/HomePage";
 import LoanPage from "./pages/LoanPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import LoginPage from "./pages/LoginPage";
+import LoansPage from "./pages/LoansPage";
 
 const router = createBrowserRouter([
 	{
@@ -37,6 +38,10 @@ const router = createBrowserRouter([
 	{
 		path: "/login",
 		element: <LoginPage />
+	},
+	{
+		path: "/emprestimos",
+		element: <LoansPage />
 	}
 ]);
 

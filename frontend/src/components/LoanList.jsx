@@ -73,7 +73,7 @@ function LoanList(props) {
 
 			{/* Lista de Empréstimos */}
 			<div className="loan-list">
-				<h2 className="text-3xl font-semibold mb-2 text-white">
+				<h2 className="text-4xl font-semibold mb-2 text-amber-600">
 					Mostrando empréstimos do usuário:
 				</h2>
 				<p className="mb-4 text-white">

@@ -8,7 +8,7 @@ import LibraLogo from '../images/LibranetLogo.png';
 function Navbar() {
 	return (
 		<nav 
-			className="navbar p-1 flex justify-between items-start w-11/12 m-auto max-h-[10vh]"
+			className="navbar bg-gradient-to-b from-[white] to-white flex justify-between items-start w-full m-auto min-h-[8vh]"
 		>
 			
 			<img src={LibraLogo} className="max-w-10" alt="Libra Logo" />

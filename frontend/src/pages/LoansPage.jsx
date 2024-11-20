@@ -1,5 +1,6 @@
 import LoanList from "../components/LoanList"
 import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
 
 
 export default function LoansPage(props) {
@@ -16,6 +17,10 @@ export default function LoansPage(props) {
       }
     }, []);
     return(
-        <LoanList isAdmin={isAdmin} />
+        <>
+          <Navbar />
+          <LoanList isAdmin={isAdmin} />
+        
+        </>
     )
 }

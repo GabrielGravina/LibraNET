@@ -36,172 +36,178 @@ def create_biblioteca():
 # CRUD para Livros -----------------------------------
 
 # Isso filtra os resultados para a biblioteca selecionada
-@app.route('/api/livros', methods=['GET'])
-def get_livros():
-    livros = Livro.query.all()
 
-    return jsonify([{
-        'id': livro.id,
-        'titulo': livro.titulo,
-        'autor': livro.autor,
-        'ano_publicado': livro.ano_publicado,
-        'disponivel': livro.disponivel,
-        'status': livro.status,
-        'categoria': livro.categoria,
-        'biblioteca_nome': livro.biblioteca.nome  # Supondo que o nome da biblioteca está acessível
-    } for livro in livros])
+class LivroController:
 
+    @staticmethod
+    @app.route('/api/livros', methods=['GET'])
+    def get_livros():
+        try:
+            # Verifica se há um título ou ID na query string
+            livro_id = request.args.get('id')
+            titulo = request.args.get('titulo')
 
-@app.route("/api/livros/<string:titulo>", methods=["GET"])
-def get_livros_by_title(titulo):
-    try:
-        # Filtrar o título de forma case-insensitive
-        livros = Livro.query.filter(Livro.titulo.ilike(f"%{titulo}%")).all()
-        
-        # Verificar se a lista de livros está vazia
-        if not livros:
-            return jsonify({"error": "Livro não encontrado"}), 404
-        
-        # Retornar dados dos livros
-        livros_data = [
-            {
-                "id": livro.id,
-                "titulo": livro.titulo,
-                "autor": livro.autor,
-                "ano_publicado": livro.ano_publicado,
-                "disponivel": livro.disponivel
-            }
-            for livro in livros
-        ]
-        return jsonify(livros_data), 200
-    except Exception as e:
-        return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
+            if livro_id:
+                livro = Livro.query.get(livro_id)
+                if livro is None:
+                    return jsonify({"error": "Livro não encontrado"}), 404
+                return jsonify(LivroController.livro_to_dict(livro)), 200
 
-@app.route("/api/livro/<int:id>", methods=["GET"])
-def get_livro_by_id(id):
-    try:
-        # Busca livro pelo ID especificado
-        livro = Livro.query.get(id)  # Obtém o livro com o ID fornecido
-        
-        if livro is None:
-            return jsonify([]), 404  # Retorna uma lista vazia se o livro não for encontrado
-        
-        # Transforma o livro em um dicionário para facilitar a serialização em JSON
-        livro_data = {
+            if titulo:
+                livros = Livro.query.filter(Livro.titulo.ilike(f"%{titulo}%")).all()
+                if not livros:
+                    return jsonify({"error": "Livro não encontrado"}), 404
+                return jsonify([LivroController.livro_to_dict(livro) for livro in livros]), 200
+
+            # Caso não tenha título nem ID, retorna todos os livros
+            livros = Livro.query.all()
+            return jsonify([LivroController.livro_to_dict(livro) for livro in livros]), 200
+        except Exception as e:
+            return jsonify({"error": "Erro ao buscar os livros", "details": str(e)}), 500
+
+    @staticmethod
+    @app.route("/api/livro/<int:id>", methods=["GET"])
+    def get_livro_by_id(id):
+        try:
+            livro = Livro.query.get(id)
+            if livro is None:
+                return jsonify({"error": "Livro não encontrado"}), 404
+            return jsonify(LivroController.livro_to_dict(livro)), 200
+        except Exception as e:
+            return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
+
+    @staticmethod
+    @app.route("/api/livros", methods=["POST"])
+    def create_livro():
+        try:
+            data = request.json
+            titulo = data.get("titulo")
+            autor = data.get("autor")
+            prateleira = data.get("prateleira")
+            biblioteca_id = data.get("biblioteca_id")
+
+            if not all([titulo, autor, prateleira, biblioteca_id]):
+                return jsonify({"error": "Missing required fields"}), 400
+
+            livro = Livro(titulo=titulo, autor=autor, prateleira=prateleira, biblioteca_id=biblioteca_id)
+            db.session.add(livro)
+            db.session.commit()
+
+            return jsonify({"msg": "Livro criado com sucesso"}), 201
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+    @staticmethod
+    @app.route("/api/livros/<int:id>", methods=["PATCH"])
+    def update_livro(id):
+        try:
+            data = request.json
+            livro = Livro.query.get(id)
+            if not livro:
+                return jsonify({"error": "Livro não encontrado."}), 404
+
+            if 'titulo' in data:
+                livro.titulo = data['titulo']
+            if 'autor' in data:
+                livro.autor = data['autor']
+            if 'ano_publicado' in data:
+                livro.ano_publicado = data['ano_publicado']
+            if 'disponivel' in data:
+                livro.disponivel = data['disponivel']
+            if 'status' in data:
+                livro.status = data['status']
+
+            db.session.commit()
+            return jsonify({"message": "Livro atualizado com sucesso.", "livro": LivroController.livro_to_dict(livro)}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": "Erro ao atualizar o livro.", "details": str(e)}), 500
+
+    @staticmethod
+    def livro_to_dict(livro):
+        """Método para converter o livro em um dicionário"""
+        return {
             "id": livro.id,
             "titulo": livro.titulo,
             "autor": livro.autor,
             "ano_publicado": livro.ano_publicado,
-            "disponivel": livro.disponivel
+            "disponivel": livro.disponivel,
+            "status": livro.status,
+            "categoria": livro.categoria,
+            "biblioteca_nome": livro.biblioteca.nome  # Supondo que o nome da biblioteca está acessível
         }
-        
-        # Retorna o livro no formato JSON
-        return jsonify([livro_data]), 200  # Retorna como uma lista com um único livro
-    except Exception as e:
-        # Tratamento de erros
-        return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
-
-@app.route("/api/livros", methods=["POST"])
-def create_livro():
-    try:
-        data = request.json
-        titulo = data.get("titulo")
-        autor = data.get("autor")
-        prateleira = data.get("prateleira")
-        biblioteca_id = data.get("biblioteca_id")
-
-        if not all([titulo, autor, prateleira, biblioteca_id]):
-            return jsonify({"error": "Missing required fields"}), 400
-
-        livro = Livro(titulo=titulo, autor=autor, prateleira=prateleira, biblioteca_id=biblioteca_id)
-        db.session.add(livro)
-        db.session.commit()
-
-        return jsonify({"msg": "Livro criado com sucesso"}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/livros/<int:id>", methods=["PATCH"])
-def update_livro(id):
-    data = request.json
-
-    livro = Livro.query.get(id)
-    if not livro:
-        return jsonify({"error": "Livro não encontrado."}), 404
-    
-    if 'titulo' in data:
-        livro.titulo = data['titulo']
-    if 'autor' in data:
-        livro.autor = data['autor']
-    if 'ano_publicado' in data:
-        livro.ano_publicado = data['ano_publicado']
-    if 'disponivel' in data:
-        livro.disponivel = data['disponivel']
-    if 'status' in data:
-        livro.status = data['status']
-
-    try:
-        db.session.commit()
-        return jsonify({"message": "Livro atualizado com sucesso.", "livro": livro.to_json()}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": "Erro ao atualizar o livro.", "details": str(e)}), 500
 
 #----------------------------------
-# CRUD para Usuários
+class UsuarioController:
 
-# No backend, no endpoint de login (assumindo que você já tem a validação de credenciais funcionando)
-@app.route("/login", methods=["POST"])
-def login():
-    # Obtém os dados do corpo da requisição
-    data = request.get_json()
-    cpf = data.get("cpf")
-    senha = data.get("senha")
+    @staticmethod
+    @app.route("/login", methods=["POST"])
+    def login():
+        """Endpoint de login para usuários"""
+        try:
+            data = request.get_json()
+            cpf = data.get("cpf")
+            senha = data.get("senha")
 
-    # Verifique se o CPF e a senha foram fornecidos
-    if not cpf or not senha:
-        return jsonify({"error": "CPF e senha são obrigatórios!"}), 400
+            if not cpf or not senha:
+                return jsonify({"error": "CPF e senha são obrigatórios!"}), 400
 
-    # Procure pelo usuário no banco de dados
-    usuario = Usuario.query.filter_by(cpf=cpf).first()
+            usuario = Usuario.query.filter_by(cpf=cpf).first()
 
-    if usuario and usuario.senha == senha:
-        # Supondo que você tem um campo "isAdmin" ou uma lógica para isso
-        is_admin = usuario.cpf == "adminCpf"  # Altere conforme sua lógica para admin
-        return jsonify({
+            if usuario and usuario.senha == senha:
+                is_admin = usuario.cpf == "adminCpf"  # Lógica para verificar se o usuário é admin
+                return jsonify({
+                    "cpf": usuario.cpf,
+                    "nome": usuario.nome,
+                    "admin": usuario.admin  # Envia o status de admin no retorno
+                })
+            else:
+                return jsonify({"error": "Credenciais inválidas!"}), 401
+        except Exception as e:
+            return jsonify({"error": "Erro ao processar o login", "details": str(e)}), 500
+
+    @staticmethod
+    @app.route("/api/usuarios", methods=["GET"])
+    def get_usuarios():
+        """Endpoint para listar todos os usuários"""
+        try:
+            usuarios = Usuario.query.all()
+            result = [UsuarioController.usuario_to_dict(usuario) for usuario in usuarios]
+            return jsonify(result), 200
+        except Exception as e:
+            return jsonify({"error": "Erro ao buscar os usuários", "details": str(e)}), 500
+
+    @staticmethod
+    @app.route("/api/usuarios", methods=["POST"])
+    def create_usuario():
+        """Endpoint para criar um novo usuário"""
+        try:
+            data = request.json
+            nome = data.get("nome")
+            cpf = data.get("cpf")
+            senha = data.get("senha")
+
+            if not nome or not cpf or not senha:
+                return jsonify({"error": "Missing required fields"}), 400
+
+            usuario = Usuario(nome=nome, cpf=cpf, senha=senha)
+            db.session.add(usuario)
+            db.session.commit()
+
+            return jsonify({"msg": "Usuário criado com sucesso"}), 201
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
+
+    @staticmethod
+    def usuario_to_dict(usuario):
+        """Método para converter o objeto Usuario em dicionário"""
+        return {
             "cpf": usuario.cpf,
             "nome": usuario.nome,
-            "admin": usuario.admin  # Envia o status de admin no retorno
-        })
-    else:
-        return jsonify({"error": "Credenciais inválidas!"}), 401
-
-@app.route("/api/usuarios", methods=["GET"])
-def get_usuarios():
-    usuarios = Usuario.query.all()
-    result = [usuario.to_json() for usuario in usuarios]
-    return jsonify(result), 200
-
-@app.route("/api/usuarios", methods=["POST"])
-def create_usuario():
-    try:
-        data = request.json
-        nome = data.get("nome")
-        cpf = data.get("cpf")
-        senha = data.get("senha")
-
-        if not nome or not cpf:
-            return jsonify({"error": "Missing required fields"}), 400
-
-        usuario = Usuario(nome=nome, cpf=cpf, senha=senha)
-        db.session.add(usuario)
-        db.session.commit()
-
-        return jsonify({"msg": "Usuário criado com sucesso"}), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+            "admin": usuario.admin,  # Campo que pode indicar se é admin ou não
+        }
 
 # CRUD para Empréstimos
 @app.route("/api/emprestimos", methods=["GET"])

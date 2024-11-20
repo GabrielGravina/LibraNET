@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 export default function BookPage() {
 	const [results, setResults] = useState([]); // Todos os livros
@@ -86,14 +87,10 @@ export default function BookPage() {
 	};
 
 	return (
-		<div className="flex-auto w-3/4 m-auto p-4"
-		style={{
-			backgroundImage: `linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 179, 0, 0.3))`,
-			backgroundSize: 'cover',
-			backgroundPosition: 'center',
-			minHeight: '80vh' // Alterado de height para minHeight
-		  }}>
-			<h3 className="text-2xl p-2">Listando Livros:</h3>
+		<div className="flex-auto w-full m-auto bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[80vh]">
+			<Navbar />
+			<section className="w-2/4 m-auto text-black">
+			<h3 className="text-2xl p-2 justify-self-center">Listando Livros:</h3>
 			<input
 				className="w-full p-2 mb-4 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500"
 				type="text"
@@ -102,24 +99,28 @@ export default function BookPage() {
 				onChange={handleSearch}
 			/>
 
-			{/* Seção de seleção de bibliotecas usando radio buttons */}
-			<div className="mb-4">
-				<h4>Filtrar por Biblioteca:</h4>
-				<div>
-					<label>
-						<input
-							type="radio"
-							name="biblioteca"
-							value=""
-							checked={selectedBiblioteca === ""}
-							onChange={() => handleBibliotecaSelection("")}
-							className="mr-2"
-						/>
-						Todas
-					</label>
-					{bibliotecas.map((biblioteca) => (
-						<div key={biblioteca.id} className="flex items-center mb-2">
+			
+
+			<div className="flex-auto m-auto">
+				<div className="flex justify-center align-top"> {/* Flex para colocar as seções lado a lado */}
+					{/* Seção de Filtrar por Biblioteca */}
+					<div className="m-4">
+						<h4>Filtrar por Biblioteca:</h4>
+						<div>
+							<label>
 							<input
+								type="radio"
+								name="biblioteca"
+								value=""
+								checked={selectedBiblioteca === ""}
+								onChange={() => handleBibliotecaSelection("")}
+								className="mr-2"
+							/>
+							Todas
+							</label>
+							{bibliotecas.map((biblioteca) => (
+							<div key={biblioteca.id} className="flex items-center mb-2">
+								<input
 								type="radio"
 								id={`biblioteca-${biblioteca.id}`}
 								name="biblioteca"
@@ -127,49 +128,60 @@ export default function BookPage() {
 								onChange={() => handleBibliotecaSelection(biblioteca.nome)}
 								checked={selectedBiblioteca === biblioteca.nome}
 								className="mr-2"
-							/>
-							<label htmlFor={`biblioteca-${biblioteca.id}`}>
+								/>
+								<label htmlFor={`biblioteca-${biblioteca.id}`}>
 								{biblioteca.nome}
-							</label>
+								</label>
+							</div>
+							))}
 						</div>
-					))}
+					</div>
+
+					{/* Seção de Filtrar por Categoria */}
+				
+				
+				<div className="flex justify-center align-top m-4">
+
+					<div className="">
+							<h4 className="">Filtrar por Categoria:</h4>
+							<div>
+								<label>
+								<input
+									type="radio"
+									name="categoria"
+									value=""
+									checked={selectedCategoria === ""}
+									onChange={() => handleCategoriaSelection("")}
+									className="mr-2"
+								/>
+								Todas
+								</label>
+								{categorias.map((categoria) => (
+								<div key={categoria} className="flex items-center mb-2">
+									<input
+									type="radio"
+									id={`categoria-${categoria}`}
+									name="categoria"
+									value={categoria}
+									onChange={() => handleCategoriaSelection(categoria)}
+									checked={selectedCategoria === categoria}
+									className="mr-2"
+									/>
+									<label htmlFor={`categoria-${categoria}`}>{categoria}</label>
+								</div>
+								))}
+							</div>
+						</div>
+
+
+					</div>
+					
 				</div>
 			</div>
 
-			{/* Seção de seleção de categorias usando radio buttons */}
-			<div className="mb-4">
-				<h4>Filtrar por Categoria:</h4>
-				<div>
-					<label>
-						<input
-							type="radio"
-							name="categoria"
-							value=""
-							checked={selectedCategoria === ""}
-							onChange={() => handleCategoriaSelection("")}
-							className="mr-2"
-						/>
-						Todas
-					</label>
-					{categorias.map((categoria) => (
-						<div key={categoria} className="flex items-center mb-2">
-							<input
-								type="radio"
-								id={`categoria-${categoria}`}
-								name="categoria"
-								value={categoria}
-								onChange={() => handleCategoriaSelection(categoria)}
-								checked={selectedCategoria === categoria}
-								className="mr-2"
-							/>
-							<label htmlFor={`categoria-${categoria}`}>{categoria}</label>
-						</div>
-					))}
-				</div>
-			</div>
 
 			<div className="loan-list">
-				<h2 className="text-2xl font-bold mb-2">Lista de livros:</h2>
+				<h2 className="text-2xl font-bold mb-2 justify-self-center">Lista de livros:</h2>
 				<ul>
 					{filteredResults.map((result) => (
 						<li
@@ -210,6 +222,11 @@ export default function BookPage() {
 					))}
 				</ul>
 			</div>
+
+
+
+			</section>
+			
 		</div>
 	);
 }

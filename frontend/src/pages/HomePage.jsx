@@ -24,7 +24,7 @@ export default function HomePage() {
     <>
       <Navbar />
       <section
-        className="w-full flex flex-col items-center py-10 justify-start bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[90vh]"
+        className="w-full flex flex-col items-center py-10 justify-start bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]"
       >
         <h1 className="text-7xl font-semibold ml-2 text-center text-black">
           Libra<span className="text-hard-orange">NET</span>

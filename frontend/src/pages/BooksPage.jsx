@@ -138,36 +138,44 @@ export default function BookPage() {
 					</div>
 
 					{/* Seção de Filtrar por Categoria */}
-					<div className="flex justify-center align-top m-4">
-						<h4 className="column">Filtrar por Categoria:</h4>
-						<div>
-							<label>
-							<input
-								type="radio"
-								name="categoria"
-								value=""
-								checked={selectedCategoria === ""}
-								onChange={() => handleCategoriaSelection("")}
-								className="mr-2"
-							/>
-							Todas
-							</label>
-							{categorias.map((categoria) => (
-							<div key={categoria} className="flex items-center mb-2">
+				
+				
+				<div className="flex justify-center align-top m-4">
+
+					<div className="">
+							<h4 className="">Filtrar por Categoria:</h4>
+							<div>
+								<label>
 								<input
-								type="radio"
-								id={`categoria-${categoria}`}
-								name="categoria"
-								value={categoria}
-								onChange={() => handleCategoriaSelection(categoria)}
-								checked={selectedCategoria === categoria}
-								className="mr-2"
+									type="radio"
+									name="categoria"
+									value=""
+									checked={selectedCategoria === ""}
+									onChange={() => handleCategoriaSelection("")}
+									className="mr-2"
 								/>
-								<label htmlFor={`categoria-${categoria}`}>{categoria}</label>
+								Todas
+								</label>
+								{categorias.map((categoria) => (
+								<div key={categoria} className="flex items-center mb-2">
+									<input
+									type="radio"
+									id={`categoria-${categoria}`}
+									name="categoria"
+									value={categoria}
+									onChange={() => handleCategoriaSelection(categoria)}
+									checked={selectedCategoria === categoria}
+									className="mr-2"
+									/>
+									<label htmlFor={`categoria-${categoria}`}>{categoria}</label>
+								</div>
+								))}
 							</div>
-							))}
 						</div>
+
+
 					</div>
+					
 				</div>
 			</div>
 

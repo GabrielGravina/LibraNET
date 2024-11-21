@@ -59,11 +59,11 @@ function LoanList(props) {
 	};
 
 	return (
-		<div className="flex-auto w-full m-auto bg-gradient-to-b from-light-orange to-white bg-cover bg-center">
+		<div className="flex-auto w-full m-auto bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
 			{/* Campo de pesquisa */}
-			<div className="mb-6">
+			<div className="mb-6 justify-self-center">
 				<input
-					className="w-96 p-3 mb-4 border-2 border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:outline-none"
+					className="w-96 p-3 mb-4 mt-6 border-2 border-gray-300 rounded-md shadow-sm focus:ring focus:ring-blue-500 focus:outline-none"
 					type="text"
 					placeholder="Pesquisar por nome do usuário"
 					value={searchTerm}
@@ -73,13 +73,14 @@ function LoanList(props) {
 
 			{/* Lista de Empréstimos */}
 			<div className="loan-list">
-				<h2 className="text-4xl font-semibold mb-2 text-amber-600">
-					Mostrando empréstimos do usuário:
-				</h2>
-				<p className="mb-4 text-white">
+				<h2 className="justify-self-center text-4xl font-semibold mb-2 text-amber-600">
 					{props.isAdmin
 						? "Todos os dados dos empréstimos"
-						: "Empréstimos:"}
+						: "Seus empréstimos:"}
+					
+				</h2>
+				<p className="mb-4 text-black">
+					
 				</p>
 				<ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-4/5 mx-auto p-12">
 					{results.map((result) => (

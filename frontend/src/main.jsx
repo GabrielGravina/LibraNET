@@ -12,6 +12,7 @@ import LoanPage from "./pages/LoanPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import LoginPage from "./pages/LoginPage";
 import LoansPage from "./pages/LoansPage";
+import CreateLoanPage from "./pages/CreateLoanPage"
 
 const router = createBrowserRouter([
 	{
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
 	{
 		path: "/emprestimos",
 		element: <LoansPage />
+	},
+	{
+		path: "/emprestimos/criar",
+		element: <CreateLoanPage />
 	}
 ]);
 

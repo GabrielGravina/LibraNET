@@ -78,25 +78,44 @@ class LivroController:
 
     @staticmethod
     @app.route("/api/livros", methods=["POST"])
-    def create_livro():
+    @app.route("/api/livros", methods=["POST"])
+    @app.route("/api/livros", methods=["POST"])
+  
+  
+    @app.route("/api/livros", methods=["POST"])
+    def criar_livro():
+        data = request.get_json()
+
+        titulo = data.get("titulo")
+        autor = data.get("autor")
+        prateleira_id = data.get("prateleira_id")
+        categoria = data.get("categoria")
+        ano_publicado = data.get("ano_publicado")
+        biblioteca_id = data.get("biblioteca_id")
+        disponivel = data.get("disponivel")
+
+        # Verificar se o campo categoria foi passado corretamente
+        if not categoria:
+            return jsonify({"error": "Categoria é obrigatória"}), 400
+
+        novo_livro = Livro(
+            titulo=titulo,
+            autor=autor,
+            prateleira_id=prateleira_id,
+            categoria=categoria,
+            ano_publicado=ano_publicado,
+            biblioteca_id=biblioteca_id,
+            disponivel=disponivel
+        )
+
         try:
-            data = request.json
-            titulo = data.get("titulo")
-            autor = data.get("autor")
-            prateleira = data.get("prateleira")
-            biblioteca_id = data.get("biblioteca_id")
-
-            if not all([titulo, autor, prateleira, biblioteca_id]):
-                return jsonify({"error": "Missing required fields"}), 400
-
-            livro = Livro(titulo=titulo, autor=autor, prateleira=prateleira, biblioteca_id=biblioteca_id)
-            db.session.add(livro)
+            db.session.add(novo_livro)
             db.session.commit()
-
-            return jsonify({"msg": "Livro criado com sucesso"}), 201
+            return jsonify(novo_livro.to_json()), 201
         except Exception as e:
             db.session.rollback()
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"error": "Erro ao criar livro.", "details": str(e)}), 500
+
 
     @staticmethod
     @app.route("/api/livros/<int:id>", methods=["PATCH"])
@@ -204,6 +223,7 @@ class UsuarioController:
     def usuario_to_dict(usuario):
         """Método para converter o objeto Usuario em dicionário"""
         return {
+            "id": usuario.id,
             "cpf": usuario.cpf,
             "nome": usuario.nome,
             "admin": usuario.admin,  # Campo que pode indicar se é admin ou não
@@ -251,39 +271,31 @@ def get_emprestimo_by_id(emprestimo_id):
     
     return jsonify(emprestimo_data), 200
 
-@app.route("/api/emprestimos", methods=["POST"])
+
+@app.route('/api/emprestimos', methods=['POST'])
 def criar_emprestimo():
     data = request.get_json()
-    livro_id = data.get("livro_id")
-    usuario_id = data.get("usuario_id")
+    livro_id = data.get('livro_id')
+    usuario_id = data.get('usuario_id')
 
-    # Verificação se o livro existe e está disponível
-    livro = Livro.query.get(livro_id)
-    if not livro:
+    livro = Livro.query.filter_by(id=livro_id).first()
+    if livro is None:
         return jsonify({"error": "Livro não encontrado."}), 404
-    
+
+    # Verifique o status do livro
+    print(f"Status do livro {livro.id}: disponível = {livro.disponivel}")  # Log para verificar o status do livro
+
     if not livro.disponivel:
         return jsonify({"error": "O livro já está emprestado."}), 400
 
-    # Criação do empréstimo
-    novo_emprestimo = Emprestimo(
-        livro_id=livro_id,
-        usuario_id=usuario_id,
-        data_emprestimo=datetime.utcnow(),
-        devolvido=False
-    )
-    
-    # Atualização da disponibilidade do livro para False
-    livro.disponivel = False
+    # Criar o empréstimo
+    novo_emprestimo = Emprestimo(livro_id=livro.id, usuario_id=usuario_id)
+    livro.disponivel = False  # Marca o livro como emprestado
+    db.session.add(novo_emprestimo)
+    db.session.commit()
 
-    # Commit das alterações
-    try:
-        db.session.add(novo_emprestimo)
-        db.session.commit()
-        return jsonify(novo_emprestimo.to_json()), 201
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"error": "Erro ao criar o empréstimo.", "details": str(e)}), 500
+    return jsonify({"message": "Empréstimo criado com sucesso."}), 201
+
     
 
 
@@ -321,19 +333,15 @@ def buscar_emprestimos_por_nome(nome):
 
 
 def calcular_multa(emprestimo):
-    data_atual = datetime.now()  # Corrige para chamar o método para obter a data atual
-    if data_atual > emprestimo.data_devolucao:
-        # Calcula a multa (exemplo)
-        dias_atraso = (data_atual - emprestimo.data_devolucao).days
-        multa_valor = dias_atraso * 5  # Exemplo: R$5 por dia de atraso
-        # Atualize ou crie a multa no banco de dados
-        multa = Multa.query.filter_by(emprestimo_id=emprestimo.id).first()
-        if multa:
-            multa.valor = multa_valor
-        else:
-            multa = Multa(emprestimo_id=emprestimo.id, valor=multa_valor)
-            db.session.add(multa)
-        db.session.commit()
+    if emprestimo.data_devolucao is not None:  # Verifica se a data de devolução é válida
+        data_atual = datetime.now()
+        if data_atual > emprestimo.data_devolucao:
+            # Código para calcular a multa
+            pass
+    else:
+        # Caso a data_devolucao seja None, você pode tratar isso de acordo com a sua lógica de negócio
+        print("Data de devolução não foi definida para este empréstimo.")
+
 
 
 # ---------------- CRUD para Multas --------------------------

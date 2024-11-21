@@ -1,14 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 function LoanList(props) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [results, setResults] = useState([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [isAdmin, setIsAdmin] = useState(false); // Verifica se o usuário é admin
 
-	const handleEditButton = () => {
-		console.log("Ignore");
-	};
+	// Função para verificar se o usuário é admin
+	useEffect(() => {
+		const user = localStorage.getItem("user");
+		if (user) {
+			const userData = JSON.parse(user);
+			setIsAdmin(userData.admin); // Define o estado isAdmin com base nos dados armazenados no localStorage
+		}
+	}, []);
 
 	const handleSearch = async (event) => {
 		const name = event.target.value;
@@ -18,12 +24,11 @@ function LoanList(props) {
 		if (name.length > 0) {
 			try {
 				const response = await fetch(
-					`http://127.0.0.1:5000/api/usuarios/emprestimos/nome/${name}`,
+					`http://127.0.0.1:5000/api/usuarios/emprestimos/nome/${name}`
 				);
 				if (response.ok) {
 					const data = await response.json();
 					setResults(data);
-					console.log(results.data);
 				} else {
 					console.log("Erro ao buscar dados.");
 				}
@@ -48,7 +53,7 @@ function LoanList(props) {
 			});
 
 			const updatedResults = results.map((emp) =>
-				emp.emprestimo_id === emprestimoId ? { ...emp, devolvido: true } : emp,
+				emp.emprestimo_id === emprestimoId ? { ...emp, devolvido: true } : emp
 			);
 
 			console.log("Resultados atualizados:", updatedResults);
@@ -74,14 +79,11 @@ function LoanList(props) {
 			{/* Lista de Empréstimos */}
 			<div className="loan-list">
 				<h2 className="justify-self-center text-4xl font-semibold mb-2 text-amber-600">
-					{props.isAdmin
+					{isAdmin
 						? "Todos os dados dos empréstimos"
 						: "Seus empréstimos:"}
-					
 				</h2>
-				<p className="mb-4 text-black">
-					
-				</p>
+				<p className="mb-4 text-black"></p>
 				<ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 w-4/5 mx-auto p-12">
 					{results.map((result) => (
 						<li
@@ -98,7 +100,7 @@ function LoanList(props) {
 								Status: {result.devolvido ? "Devolvido" : "Não devolvido"}
 							</p>
 							{/* Mostrar botão editar apenas para admins */}
-							{props.isAdmin && (
+							{isAdmin && (
 								<div className="mt-4 text-center">
 									<Link
 										to={`/emprestimo/${result.emprestimo_id}`}

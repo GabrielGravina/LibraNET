@@ -4,6 +4,7 @@ import bookLibrary from '../images/book-library-with-open-textbook.jpg';
 import { FaUserAlt } from "react-icons/fa";
 import { IoBookSharp } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
+import { FaHome } from "react-icons/fa";
 
 
 function Navbar() {
@@ -14,7 +15,12 @@ function Navbar() {
 			
 			<ul className="flex items-center space-x-4 text-black m-auto">
 
-			<li className="p-1  hover:opacity-80">
+				<li className="p-1  hover:opacity-80">
+					<Link to="/" className="hover:opacity-80 hover:cursor-pointer p-1  flex items-center justify-center">
+						<FaHome className="mr-4" size={22} color="black" /><p className="font-semibold text-lg">Início</p>
+					</Link>
+				</li>
+				<li className="p-1  hover:opacity-80">
 					<Link to="/login" className="hover:opacity-80 hover:cursor-pointer p-1  flex items-center justify-center">
 						<FaUserAlt className="mr-4" size={22} color="black" /><p className="font-semibold text-lg">Minha conta</p>
 					</Link>

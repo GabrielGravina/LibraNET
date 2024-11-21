@@ -13,6 +13,7 @@ import NotFoundPage from "./pages/NotFoundPage";
 import LoginPage from "./pages/LoginPage";
 import LoansPage from "./pages/LoansPage";
 import CreateLoanPage from "./pages/CreateLoanPage"
+import CreateBookPage from "./pages/CreateBookPage"
 
 const router = createBrowserRouter([
 	{
@@ -35,6 +36,11 @@ const router = createBrowserRouter([
 	{
 		path: "/livros/:livro_id",
 		element: <EditBookPage />,
+	},
+	{
+		path:"/livros/criar",
+		element: <CreateBookPage />
+
 	},
 	{
 		path: "/login",

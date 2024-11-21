@@ -41,6 +41,13 @@ export default function HomePage() {
         <div className="self-center mt-6">
           <img className="max-w-xl" src={OpeningBooks} alt="Opening Books" />
         </div>
+
+        <div className="bg-black w-3/4 text-white">
+          {isLoggedIn && 
+            <p>Está logado</p>
+          
+          }
+        </div>
         
         <SearchBar />
       </section>

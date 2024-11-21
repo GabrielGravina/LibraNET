@@ -1,13 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 
 function LoginPage() {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Estado para verificar login
+  const navigate = useNavigate();
+
+  // Verifique se o usuário já está logado ao carregar a página
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      setIsLoggedIn(true); // O usuário está logado
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    if (!cpf || !senha) {
+      setError("Por favor, preencha todos os campos.");
+      return;
+    }
 
     try {
       const response = await fetch("http://localhost:5000/login", {
@@ -21,13 +37,10 @@ function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Usuário logado:", data); // Para depurar e verificar a resposta
-
-        // Armazenar a resposta no localStorage
+        // Salvar no localStorage se o login for bem-sucedido
         localStorage.setItem("user", JSON.stringify(data));
-
-        // Redireciona ou atualiza o estado (se necessário)
-        window.location.href = "/"; // Por exemplo, redireciona para a home
+        setIsLoggedIn(true); // Atualizar o estado de login
+        navigate("/"); // Redirecionar para a página inicial
       } else {
         setError(data.error || "Erro ao fazer login.");
       }
@@ -36,36 +49,55 @@ function LoginPage() {
     }
   };
 
+  const handleLogout = () => {
+    // Limpar o localStorage e atualizar o estado de login
+    localStorage.removeItem("user");
+    setIsLoggedIn(false); // Atualizar o estado para indicar que não está mais logado
+    navigate("/login"); // Redirecionar para a página de login
+  };
+
   return (
     <div>
       <Navbar />
-      <section className=" bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
-        <div  className="flex-auto w-3/4 m-auto">
-          <form 
-            className="p-4 justify-self-center rounded-lg"
-            onSubmit={handleLogin}     
-          >
-            <input
-              type="text"
-              placeholder="CPF"
-              value={cpf}
-              onChange={(e) => setCpf(e.target.value)}
-              className="bg-white m-2 text-black rounded-xl px-2"
-            />
-            <input
-              type="password"
-              placeholder="Senha"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              className="bg-white m-2 text-black rounded-xl px-2"
-            />
-          </form>
-
-          <button className="flex bg-white border-2 rounded-xl py-0 px-4 text-black font-semibold justify-self-center self-center hover:bg-gray-200 transition-all" type="submit">Login</button>
+      <section className="bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
+        <div className="flex-auto w-3/4 m-auto">
+          {isLoggedIn ? (
+            <div>
+              <p>Você está logado!</p>
+              <button
+                onClick={handleLogout}
+                className="bg-red-500 text-white p-2 rounded-lg"
+              >
+                Sair
+              </button>
+            </div>
+          ) : (
+            <form className="p-4 justify-self-center rounded-lg" onSubmit={handleLogin}>
+              <input
+                type="text"
+                placeholder="CPF"
+                value={cpf}
+                onChange={(e) => setCpf(e.target.value)}
+                className="bg-white m-2 text-black rounded-xl px-2"
+              />
+              <input
+                type="password"
+                placeholder="Senha"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                className="bg-white m-2 text-black rounded-xl px-2"
+              />
+              <button
+                type="submit"
+                className="flex bg-white border-2 rounded-xl py-0 px-4 text-black font-semibold justify-self-center self-center hover:bg-gray-200 transition-all"
+              >
+                Login
+              </button>
+            </form>
+          )}
         </div>
-      
       </section>
-      
+
       {error && <p>{error}</p>}
     </div>
   );

@@ -17,10 +17,10 @@ export default function LoansPage(props) {
       }
     }, []);
     return(
-        <>
+        <section className="min-h-[100vh]">
           <Navbar />
           <LoanList isAdmin={isAdmin} />
         
-        </>
+        </section>
     )
 }

@@ -59,7 +59,7 @@ function LoanList(props) {
 	};
 
 	return (
-		<div className="flex-auto w-full m-auto bg-gradient-to-b from-light-orange to-white bg-cover bg-center">
+		<div className="flex-auto w-full m-auto bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
 			{/* Campo de pesquisa */}
 			<div className="mb-6 justify-self-center">
 				<input

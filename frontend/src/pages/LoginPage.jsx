@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Navbar from "../components/Navbar";
 
 function LoginPage() {
   const [cpf, setCpf] = useState("");
@@ -37,21 +38,34 @@ function LoginPage() {
 
   return (
     <div>
-      <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="CPF"
-          value={cpf}
-          onChange={(e) => setCpf(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Senha"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-        />
-        <button type="submit">Login</button>
-      </form>
+      <Navbar />
+      <section className=" bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
+        <div  className="flex-auto w-3/4 m-auto">
+          <form 
+            className="p-4 justify-self-center rounded-lg"
+            onSubmit={handleLogin}     
+          >
+            <input
+              type="text"
+              placeholder="CPF"
+              value={cpf}
+              onChange={(e) => setCpf(e.target.value)}
+              className="bg-white m-2 text-black rounded-xl px-2"
+            />
+            <input
+              type="password"
+              placeholder="Senha"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              className="bg-white m-2 text-black rounded-xl px-2"
+            />
+          </form>
+
+          <button className="flex bg-white border-2 rounded-xl py-0 px-4 text-black font-semibold justify-self-center self-center hover:bg-gray-200 transition-all" type="submit">Login</button>
+        </div>
+      
+      </section>
+      
       {error && <p>{error}</p>}
     </div>
   );

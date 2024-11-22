@@ -104,7 +104,7 @@ function CreateBookPage() {
                 <input
                     type="text"
                     id="titulo"
-                    className="w-full p-2 border border-gray-300 rounded-md text-white"
+                    className="w-full p-2 border bg-gray-600 bg-gray-600 border-gray-300 rounded-md text-white"
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     required
@@ -119,7 +119,7 @@ function CreateBookPage() {
                 <input
                     type="text"
                     id="autor"
-                    className="w-full p-2 border border-gray-300 rounded-md text-white"
+                    className="w-full p-2 border border-gray-300 bg-gray-600 rounded-md text-white"
                     value={autor}
                     onChange={(e) => setAutor(e.target.value)}
                     required
@@ -134,7 +134,7 @@ function CreateBookPage() {
                 <input
                     type="number"
                     id="anoPublicacao"
-                    className="w-full p-2 border border-gray-300 rounded-md text-white"
+                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
                     value={anoPublicacao}
                     onChange={(e) => setAnoPublicacao(e.target.value)}
                     required
@@ -149,7 +149,7 @@ function CreateBookPage() {
                 <input
                     type="text"
                     id="categoria"
-                    className="w-full p-2 border border-gray-300 rounded-md text-white"
+                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
                     value={categoria}
                     onChange={(e) => setCategoria(e.target.value)}
                     required
@@ -164,7 +164,7 @@ function CreateBookPage() {
                 <input
                     type="number"
                     id="prateleiraId"
-                    className="w-full p-2 border border-gray-300 rounded-md text-white"
+                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
                     value={prateleiraId}
                     onChange={(e) => setPrateleiraId(e.target.value)}
                     required
@@ -179,7 +179,7 @@ function CreateBookPage() {
                 <input
                     type="number"
                     id="bibliotecaId"
-                    className="w-full p-2 border border-gray-300 rounded-md text-white"
+                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
                     value={bibliotecaId}
                     onChange={(e) => setBibliotecaId(e.target.value)}
                     required

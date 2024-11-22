@@ -6,6 +6,7 @@ function LoginPage() {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [error, setError] = useState("");
+  const [userName, setUserName] = useState("")
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Estado para verificar login
   const navigate = useNavigate();
 
@@ -13,6 +14,10 @@ function LoginPage() {
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) {
+      console.log(user.nome)
+      const parsedUser = JSON.parse(user);
+      setUserName(parsedUser.nome)
+      console.log(userName)
       setIsLoggedIn(true); // O usuário está logado
     }
   }, []);
@@ -60,17 +65,17 @@ function LoginPage() {
     <div>
       <Navbar />
       <section className="bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
-        <div className="flex-auto w-3/4 m-auto">
+        <div className="flex items-center justify-center w-full h-full">
           {isLoggedIn ? (
-            <div>
-              <p>Você está logado!</p>
+            <div className="p-10 text-center">
+              <p className="text-black font-semibold text-xl">Bem-vindo(a), {userName}</p>
               <button
                 onClick={handleLogout}
-                className="bg-red-500 text-white p-2 rounded-lg"
+                className="bg-red-500 text-white p-2 rounded-lg mt-4"
               >
                 Sair
               </button>
-            </div>
+        </div>
           ) : (
             <form className="p-4 justify-self-center rounded-lg" onSubmit={handleLogin}>
               <input

@@ -97,9 +97,9 @@ export default function BookPage() {
 	};
 
 	return (
-		<div className="flex-auto w-full m-auto bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[80vh]">
+		<div className="flex-auto w-full m-0 bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
 			<Navbar />
-			<section className="w-2/4 m-auto text-black">
+			<section className="w-2/4 m-auto mb-0 text-black">
 				<h3 className="text-2xl p-2 justify-self-center">Listando Livros:</h3>
 				<input
 					className="w-full p-2 mb-4 border border-gray-300 rounded-md shadow-sm focus:ring text-white focus:ring-blue-500"
@@ -188,12 +188,12 @@ export default function BookPage() {
 				</div>
 
 				<div className="loan-list">
-					<h2 className="text-2xl font-bold mb-2 justify-self-center">Lista de livros:</h2>
+					<h2 className="text-2xl font-bold mb-0 justify-self-center">Lista de livros:</h2>
 					<ul>
 						{filteredResults.map((result) => (
 							<li
 								key={result.id}
-								className="mb-4 mt-4 p-4 bg-gray-100 rounded-md shadow text-gray-600"
+								className="mt-4 p-4 bg-gray-100 rounded-md shadow text-gray-600"
 							>
 								<p>
 									<strong>Título:</strong> {result.titulo}
@@ -232,6 +232,7 @@ export default function BookPage() {
 						))}
 					</ul>
 				</div>
+				<div className="p-4"></div>
 			</section>
 		</div>
 	);

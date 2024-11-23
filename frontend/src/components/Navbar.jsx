@@ -5,6 +5,10 @@ import { IoBookSharp } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
 import { FaHome } from "react-icons/fa";
 import { useState, useEffect } from "react";
+import { FaPlus } from "react-icons/fa";
+import { FaAddressBook } from "react-icons/fa";
+
+
 
 function Navbar() {
 	// Estado para verificar se o usuário é admin
@@ -56,18 +60,18 @@ function Navbar() {
 				{isAdmin && (
 					<>
 						<li className="px-4 py-2 hover:opacity-80">
+							<Link to={`/emprestimos/criar`} className="font-semibold text-lg flex items-center">
+								<FaAddressBook className="m-2" size={22} />
+								Criar Empréstimo
+							</Link>
+						</li>
+						<li className="px-4 py-2 hover:opacity-80">
 							<Link to={`/livros/criar`} className="font-semibold text-lg flex items-center">
-								<IoBookSharp className="m-2" size={22} />
+								<FaPlus className="m-2" size={22} />
 								Criar Livro
 							</Link>
 						</li>
 
-						<li className="px-4 py-2 hover:opacity-80">
-							<Link to={`/emprestimos/criar`} className="font-semibold text-lg flex items-center">
-								<FaSearch className="m-2" size={20} />
-								Criar Empréstimo
-							</Link>
-						</li>
 					</>
 				)}
 			</ul>

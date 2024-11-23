@@ -1,6 +1,7 @@
 from app import db
 from datetime import datetime
 
+
 class Biblioteca(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
@@ -25,7 +26,7 @@ class Livro(db.Model):
 
     categoria = db.Column(db.String(50), nullable=False)
     ano_publicado = db.Column(db.String(10))
-    disponivel = db.Column(db.Boolean, default=False)
+    disponivel = db.Column(db.Boolean, default=True)
     status = db.Column(db.String(50))
 
     biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
@@ -73,6 +74,7 @@ class Emprestimo(db.Model):
     devolvido = db.Column(db.Boolean, default=False) 
     multa = db.relationship('Multa', uselist=False, backref='emprestimo')
     
+    
 
     def to_json(self):
         return {
@@ -83,6 +85,7 @@ class Emprestimo(db.Model):
             "data_devolucao": self.data_devolucao,
             "devolvido": self.devolvido
         }
+    
 
 class Multa(db.Model):
     id = db.Column(db.Integer, primary_key=True)

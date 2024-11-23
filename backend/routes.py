@@ -230,6 +230,7 @@ class UsuarioController:
         }
 
 # CRUD para Empréstimos
+
 @app.route("/api/emprestimos", methods=["GET"])
 def get_emprestimos():
     emprestimos = Emprestimo.query.all()
@@ -245,31 +246,29 @@ def get_emprestimos():
         result.append(emprestimo_data)
     return jsonify(result), 200
 
+
 # Busca um empréstimo específico pelo ID
-@app.route("/api/emprestimo/<int:emprestimo_id>", methods=["GET"])
-def get_emprestimo_by_id(emprestimo_id):
+@app.route('/api/emprestimo/<int:emprestimo_id>', methods=['GET'])
+def get_emprestimo(emprestimo_id):
     emprestimo = Emprestimo.query.get(emprestimo_id)
-    
     if not emprestimo:
-        return jsonify({"error": "Empréstimo não encontrado"}), 404
+        return jsonify({"error": "Empréstimo não encontrado."}), 404
 
-    # Busca a multa associada ao empréstimo
-    multa = emprestimo.multa  # Acessa a relação de multa
-
-    # Constrói o dicionário de resposta
+    # Supondo que `livro` é uma relação do modelo `Emprestimo` com `Livro`
     emprestimo_data = {
         "emprestimo_id": emprestimo.id,
         "usuario_nome": emprestimo.usuario.nome,
-        "data_emprestimo": emprestimo.data_emprestimo,
-        "data_devolucao": emprestimo.data_devolucao,
+        "livro_titulo": emprestimo.livro.titulo,  # Inclua o nome do livro aqui
+        "data_emprestimo": emprestimo.data_emprestimo.isoformat(),
+        "data_devolucao": emprestimo.data_devolucao.isoformat() if emprestimo.data_devolucao else None,
         "devolvido": emprestimo.devolvido,
         "multa": {
-            "valor": multa.valor if multa else None,  # Adiciona o valor da multa, se existir
-            "data_pagamento": multa.data_pagamento if multa else None  # Adiciona a data de pagamento, se existir
-        }
+            "valor": emprestimo.multa.valor if emprestimo.multa else None,
+            "data_pagamento": emprestimo.multa.data_pagamento.isoformat() if emprestimo.multa else None,
+        },
     }
-    
-    return jsonify(emprestimo_data), 200
+
+    return jsonify(emprestimo_data)
 
 
 @app.route('/api/emprestimos', methods=['POST'])
@@ -278,23 +277,33 @@ def criar_emprestimo():
     livro_id = data.get('livro_id')
     usuario_id = data.get('usuario_id')
 
+    # Validações básicas
+    if not livro_id or not usuario_id:
+        return jsonify({"error": "Campos livro_id e usuario_id são obrigatórios."}), 400
+
+    # Busca o livro
     livro = Livro.query.filter_by(id=livro_id).first()
-    if livro is None:
+    if not livro:
         return jsonify({"error": "Livro não encontrado."}), 404
 
-    # Verifique o status do livro
-    print(f"Status do livro {livro.id}: disponível = {livro.disponivel}")  # Log para verificar o status do livro
-
+    # Verifica se o livro está disponível
     if not livro.disponivel:
         return jsonify({"error": "O livro já está emprestado."}), 400
 
-    # Criar o empréstimo
-    novo_emprestimo = Emprestimo(livro_id=livro.id, usuario_id=usuario_id)
-    livro.disponivel = False  # Marca o livro como emprestado
-    db.session.add(novo_emprestimo)
-    db.session.commit()
+    try:
+        # Criar o empréstimo
+        novo_emprestimo = Emprestimo(livro_id=livro.id, usuario_id=usuario_id)
+        print("Livro.disponivel: ------------------")
+        livro.disponivel = False  # Atualiza a disponibilidade do livro
+        db.session.add(novo_emprestimo)
+        db.session.commit()
 
-    return jsonify({"message": "Empréstimo criado com sucesso."}), 201
+        return jsonify({"message": "Empréstimo criado com sucesso."}), 201
+
+    except Exception as e:
+        db.session.rollback()  # Garante que a transação será revertida em caso de erro
+        return jsonify({"error": "Erro ao criar empréstimo.", "details": str(e)}), 500
+
 
     
 
@@ -311,6 +320,9 @@ def buscar_emprestimos_por_nome(nome):
             usuario_emprestimos = db.session.query(Emprestimo).filter(Emprestimo.usuario_id == usuario.id).all()
             
             for emp in usuario_emprestimos:
+                # Buscar o livro associado ao empréstimo
+                livro = db.session.query(Livro).filter(Livro.id == emp.livro_id).first()
+
                 # Buscar as multas associadas ao empréstimo
                 multas = db.session.query(Multa).filter(Multa.emprestimo_id == emp.id).all()
                 valor_multa = sum(multa.valor for multa in multas) if multas else 0.0  # Soma todas as multas, se houver
@@ -318,6 +330,7 @@ def buscar_emprestimos_por_nome(nome):
                 emprestimos.append({
                     "emprestimo_id": emp.id,
                     "usuario_nome": usuario.nome,
+                    "livro_titulo": livro.titulo if livro else "Livro não encontrado",  # Adiciona o nome do livro
                     "data_emprestimo": emp.data_emprestimo,
                     "data_devolucao": emp.data_devolucao,
                     "devolvido": emp.devolvido,

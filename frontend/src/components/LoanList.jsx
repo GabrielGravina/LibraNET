@@ -92,6 +92,10 @@ function LoanList(props) {
 						>
 							<p className="font-medium text-lg text-gray-800">Usuário: {result.usuario_nome}</p>
 							<p className="text-sm text-gray-600">ID do empréstimo: {result.emprestimo_id}</p>
+							<p className="text-sm text-gray-600">Livro: {result.livro_titulo}</p>
+							{console.log("Result ----------------", result)}
+							
+							
 							<p className="text-sm text-gray-600">Data do Empréstimo: {result.data_emprestimo}</p>
 							<p className="text-sm text-gray-600">Data de Devolução: {result.data_devolucao}</p>
 							<p

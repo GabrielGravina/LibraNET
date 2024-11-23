@@ -93,6 +93,10 @@ export default function LoanPage() {
 						<strong>ID:</strong> {loanData.emprestimo_id}
 					</p>
 					<p className="text-gray-600">
+    					<strong>Livro:</strong> {loanData.livro_titulo || "Informação indisponível"}
+					</p>
+
+					<p className="text-gray-600">
 						<strong>Data do Empréstimo:</strong> {loanData.data_emprestimo}
 					</p>
 					<p className="text-gray-600">

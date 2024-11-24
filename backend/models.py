@@ -31,7 +31,7 @@ class Livro(db.Model):
     # Relacionamento com a tabela Exemplar
     exemplares = db.relationship('Exemplar', backref='livro', lazy=True)
 
-    disponivel = db.Column(db.Boolean)
+    disponivel = db.Column(db.Boolean) # [ ] Isso fere a 2FN, já que disponível acaba dependendo da tabela exemplares, e não do livro em si.
 
     def to_json(self):
         return {
@@ -92,18 +92,36 @@ class Emprestimo(db.Model):
     data_devolucao = db.Column(db.DateTime, nullable=True)
     devolvido = db.Column(db.Boolean, default=False) 
     multa = db.relationship('Multa', uselist=False, backref='emprestimo')
-    
-    
+
+    # Relação com Exemplar
+    exemplar = db.relationship('Exemplar', backref='emprestimos', uselist=False)
+
+    # Relação com Livro através do Exemplar
+    livro = db.relationship('Livro', backref='emprestimos', uselist=False)
 
     def to_json(self):
+        # Verifica se existe multa e, em caso positivo, inclui os dados de multa
+        multa_data = None
+        if self.multa:
+            multa_data = {
+                "valor": self.multa.valor,
+                "data_pagamento": self.multa.data_pagamento.isoformat() if self.multa.data_pagamento else None
+            }
+
         return {
             "id": self.id,
             "livro_id": self.livro_id,
+            "exemplar_id": self.exemplar_id,
             "usuario_id": self.usuario_id,
-            "data_emprestimo": self.data_emprestimo,
-            "data_devolucao": self.data_devolucao,
-            "devolvido": self.devolvido
+            "data_emprestimo": self.data_emprestimo.isoformat(),
+            "data_devolucao": self.data_devolucao.isoformat() if self.data_devolucao else None,
+            "devolvido": self.devolvido,
+            "livro_titulo": self.livro.titulo if self.livro else None,  # Título do livro relacionado
+            "exemplar_codigo": self.exemplar.codigo_inventario if self.exemplar else None,  # Código do exemplar relacionado
+            "usuario_nome": self.usuario.nome if self.usuario else None,  # Nome do usuário relacionado
+            "multa": multa_data
         }
+
     
 
 class Multa(db.Model):

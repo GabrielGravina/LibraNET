@@ -242,21 +242,29 @@ def get_emprestimo(emprestimo_id):
     if not emprestimo:
         return jsonify({"error": "Empréstimo não encontrado."}), 404
 
-    # Supondo que `livro` é uma relação do modelo `Emprestimo` com `Livro`
+    # O livro agora é acessado diretamente pela relação do Emprestimo
+    livro = emprestimo.livro  # Agora já existe a relação direta
+
+    # A lógica de multa agora checa se existe e se data_pagamento não é None
+    multa_data = None
+    if emprestimo.multa:
+        multa_data = {
+            "valor": emprestimo.multa.valor,
+            "data_pagamento": emprestimo.multa.data_pagamento.isoformat() if emprestimo.multa.data_pagamento else None
+        }
+
     emprestimo_data = {
         "emprestimo_id": emprestimo.id,
         "usuario_nome": emprestimo.usuario.nome,
-        "livro_titulo": emprestimo.livro.titulo,  # Inclua o nome do livro aqui
+        "livro_titulo": livro.titulo if livro else None,  # Inclui o título do livro
         "data_emprestimo": emprestimo.data_emprestimo.isoformat(),
         "data_devolucao": emprestimo.data_devolucao.isoformat() if emprestimo.data_devolucao else None,
         "devolvido": emprestimo.devolvido,
-        "multa": {
-            "valor": emprestimo.multa.valor if emprestimo.multa else None,
-            "data_pagamento": emprestimo.multa.data_pagamento.isoformat() if emprestimo.multa else None,
-        },
+        "multa": multa_data,
     }
 
     return jsonify(emprestimo_data)
+
 
 
 @app.route('/api/emprestimos', methods=['POST'])

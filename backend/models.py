@@ -20,17 +20,16 @@ class Livro(db.Model):
     titulo = db.Column(db.String(200), nullable=False)
     autor = db.Column(db.String(100), nullable=False)
 
-    # Removido o campo prateleira como string, agora usando relacionamento com a tabela Prateleira
+    # Relacionamento com a tabela Prateleira
     prateleira_id = db.Column(db.Integer, db.ForeignKey('prateleira.id'), nullable=False)
     prateleira = db.relationship('Prateleira', backref='livros', lazy=True)
 
     categoria = db.Column(db.String(50), nullable=False)
     ano_publicado = db.Column(db.String(10))
-    disponivel = db.Column(db.Boolean, default=True)
-    status = db.Column(db.String(50))
-
     biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
-    emprestimos = db.relationship('Emprestimo', backref='livro', lazy=True)
+
+    # Relacionamento com a tabela Exemplar
+    exemplares = db.relationship('Exemplar', backref='livro', lazy=True)
 
     def to_json(self):
         return {
@@ -42,12 +41,30 @@ class Livro(db.Model):
                 "codigo": self.prateleira.codigo,
                 "localizacao": self.prateleira.localizacao
             },
-            "biblioteca_id": self.biblioteca_id,
+            "categoria": self.categoria,
             "ano_publicado": self.ano_publicado,
-            "disponivel": self.disponivel
+            "biblioteca_id": self.biblioteca_id,
+            "exemplares": [exemplar.to_json() for exemplar in self.exemplares]  # Lista de exemplares associados
         }
 
-# models.py ou onde está definido o modelo de dados
+
+class Exemplar(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    livro_id = db.Column(db.Integer, db.ForeignKey('livro.id'), nullable=False)
+    codigo_inventario = db.Column(db.String(50), unique=True, nullable=False)  # Identificador único do exemplar
+    disponivel = db.Column(db.Boolean, default=True)
+    condicao = db.Column(db.String(50), default="Bom")  # Opcional: Condição do exemplar (ex: Bom, Ruim, etc.)
+    biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "codigo_inventario": self.codigo_inventario,
+            "disponivel": self.disponivel,
+            "condicao": self.condicao,
+            "livro_id": self.livro_id
+        }
+
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)

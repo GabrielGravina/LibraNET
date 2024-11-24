@@ -3,6 +3,9 @@ import Navbar from "../components/Navbar";
 import SearchBar from "../components/SearchBar";
 import OpeningBooks from "../images/OpeningBooks.png";
 
+
+import { motion } from "motion/react"
+
 export default function HomePage() {
   // Estado para verificar se o usuário está logado
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -37,7 +40,8 @@ export default function HomePage() {
           Se você é um ávido leitor, um estudante ou apenas quer expandir seus horizontes, 
           temos o que você precisa. Navegue, descubra e comece sua jornada literária hoje mesmo.
         </p>
-
+        
+        
         <div className="self-center mt-6">
           <img className="max-w-xl" src={OpeningBooks} alt="Opening Books" />
         </div>

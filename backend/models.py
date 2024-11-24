@@ -20,17 +20,18 @@ class Livro(db.Model):
     titulo = db.Column(db.String(200), nullable=False)
     autor = db.Column(db.String(100), nullable=False)
 
-    # Removido o campo prateleira como string, agora usando relacionamento com a tabela Prateleira
+    # Relacionamento com a tabela Prateleira
     prateleira_id = db.Column(db.Integer, db.ForeignKey('prateleira.id'), nullable=False)
     prateleira = db.relationship('Prateleira', backref='livros', lazy=True)
 
     categoria = db.Column(db.String(50), nullable=False)
     ano_publicado = db.Column(db.String(10))
-    disponivel = db.Column(db.Boolean, default=True)
-    status = db.Column(db.String(50))
-
     biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
-    emprestimos = db.relationship('Emprestimo', backref='livro', lazy=True)
+
+    # Relacionamento com a tabela Exemplar
+    exemplares = db.relationship('Exemplar', backref='livro', lazy=True)
+
+    disponivel = db.Column(db.Boolean) # [ ] Isso fere a 2FN, já que disponível acaba dependendo da tabela exemplares, e não do livro em si.
 
     def to_json(self):
         return {
@@ -42,12 +43,29 @@ class Livro(db.Model):
                 "codigo": self.prateleira.codigo,
                 "localizacao": self.prateleira.localizacao
             },
-            "biblioteca_id": self.biblioteca_id,
+            "categoria": self.categoria,
             "ano_publicado": self.ano_publicado,
-            "disponivel": self.disponivel
+            "biblioteca_id": self.biblioteca_id,
+            "exemplares": [exemplar.to_json() for exemplar in self.exemplares]  # Lista de exemplares associados
         }
 
-# models.py ou onde está definido o modelo de dados
+
+class Exemplar(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    livro_id = db.Column(db.Integer, db.ForeignKey('livro.id'), nullable=False)
+    codigo_inventario = db.Column(db.String(50), unique=False, nullable=False, default="Default_Code")  #[ ] FIX Unique = False. Identificador único do exemplar
+    disponivel = db.Column(db.Boolean, default=True)
+    condicao = db.Column(db.String(50), default="Bom")  # Opcional: Condição do exemplar (ex: Bom, Ruim, etc.)
+    biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
+    def to_json(self):
+        return {
+            "id": self.id,
+            "codigo_inventario": self.codigo_inventario,
+            "disponivel": self.disponivel,
+            "condicao": self.condicao,
+            "livro_id": self.livro_id
+        }
+
 class Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
@@ -68,23 +86,42 @@ class Usuario(db.Model):
 class Emprestimo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     livro_id = db.Column(db.Integer, db.ForeignKey('livro.id'), nullable=False)
+    exemplar_id = db.Column(db.Integer, db.ForeignKey('exemplar.id'), nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     data_emprestimo = db.Column(db.DateTime, default=datetime.utcnow)
     data_devolucao = db.Column(db.DateTime, nullable=True)
     devolvido = db.Column(db.Boolean, default=False) 
     multa = db.relationship('Multa', uselist=False, backref='emprestimo')
-    
-    
+
+    # Relação com Exemplar
+    exemplar = db.relationship('Exemplar', backref='emprestimos', uselist=False)
+
+    # Relação com Livro através do Exemplar
+    livro = db.relationship('Livro', backref='emprestimos', uselist=False)
 
     def to_json(self):
+        # Verifica se existe multa e, em caso positivo, inclui os dados de multa
+        multa_data = None
+        if self.multa:
+            multa_data = {
+                "valor": self.multa.valor,
+                "data_pagamento": self.multa.data_pagamento.isoformat() if self.multa.data_pagamento else None
+            }
+
         return {
             "id": self.id,
             "livro_id": self.livro_id,
+            "exemplar_id": self.exemplar_id,
             "usuario_id": self.usuario_id,
-            "data_emprestimo": self.data_emprestimo,
-            "data_devolucao": self.data_devolucao,
-            "devolvido": self.devolvido
+            "data_emprestimo": self.data_emprestimo.isoformat(),
+            "data_devolucao": self.data_devolucao.isoformat() if self.data_devolucao else None,
+            "devolvido": self.devolvido,
+            "livro_titulo": self.livro.titulo if self.livro else None,  # Título do livro relacionado
+            "exemplar_codigo": self.exemplar.codigo_inventario if self.exemplar else None,  # Código do exemplar relacionado
+            "usuario_nome": self.usuario.nome if self.usuario else None,  # Nome do usuário relacionado
+            "multa": multa_data
         }
+
     
 
 class Multa(db.Model):

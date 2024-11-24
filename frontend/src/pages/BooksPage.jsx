@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { motion } from "motion/react";
+
+// const MotionLink = motion.custom(Link)
+
 
 export default function BookPage() {
+	const MotionLink = motion(Link)
+
+	
 	const [results, setResults] = useState([]); // Todos os livros
 	const [filteredResults, setFilteredResults] = useState([]); // Livros filtrados para exibição
 	const [error, setError] = useState(null);
@@ -189,11 +196,11 @@ export default function BookPage() {
 
 				<div className="max-w-[80vw] justify-self-center">
 					<h2 className="text-2xl font-bold mb-0 justify-self-center">Lista de livros:</h2>
-					<ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full mx-auto p-12">
+					<ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full mx-auto p-12 ">
 						{filteredResults.map((result) => (
 							<li
 								key={result.id}
-								className="mt-4 p-4 bg-gray-100 rounded-md shadow text-gray-600"
+								className="mt-4 p-4 bg-gray-100 rounded-md shadow text-gray-600 h-fit"
 							>
 								<p>
 									<strong>Título:</strong> {result.titulo}
@@ -220,12 +227,13 @@ export default function BookPage() {
 								<div className="mt-2 flex justify-center items-center">
 									{console.log("-------isAdmin---------", isAdmin)}
 									{isAdmin && (
-										<Link
+										<MotionLink
+											whileHover={{ scale: 1.1 }}
 											to={`/livros/${result.id}`}
-											className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+											className="button px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition after:content-[a]"
 										>
 											Editar Livro
-										</Link>
+										</MotionLink>
 									)}
 								</div>
 							</li>

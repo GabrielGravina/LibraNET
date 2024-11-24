@@ -97,6 +97,17 @@ class LivroController:
         # Verificar se o campo categoria foi passado corretamente
         if not categoria:
             return jsonify({"error": "Categoria é obrigatória"}), 400
+        
+        biblioteca = db.session.query(Biblioteca).filter_by(id=biblioteca_id).first()
+
+        if not biblioteca:
+            return jsonify({"error": "Biblioteca não encontrada"}), 404
+        
+        
+        prateleira = db.session.query(Prateleira).filter_by(id=prateleira_id).first()
+        
+        if not prateleira:
+            return jsonify({"error": "Prateleira não encontrada."}), 404
 
         novo_livro = Livro(
             titulo=titulo,

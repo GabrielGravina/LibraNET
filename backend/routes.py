@@ -1,6 +1,6 @@
 from app import app, db
 from flask import request, jsonify
-from models import Biblioteca, Livro, Usuario, Emprestimo, Multa, Prateleira
+from models import Biblioteca, Livro, Usuario, Emprestimo, Multa, Prateleira, Exemplar
 from datetime import datetime, timedelta
 
 
@@ -37,136 +37,113 @@ def create_biblioteca():
 
 # Isso filtra os resultados para a biblioteca selecionada
 
+import uuid
+
 class LivroController:
-
     @staticmethod
-    @app.route('/api/livros', methods=['GET'])
-    def get_livros():
-        try:
-            # Verifica se há um título ou ID na query string
-            livro_id = request.args.get('id')
-            titulo = request.args.get('titulo')
-
-            if livro_id:
-                livro = Livro.query.get(livro_id)
-                if livro is None:
-                    return jsonify({"error": "Livro não encontrado"}), 404
-                return jsonify(LivroController.livro_to_dict(livro)), 200
-
-            if titulo:
-                livros = Livro.query.filter(Livro.titulo.ilike(f"%{titulo}%")).all()
-                if not livros:
-                    return jsonify({"error": "Livro não encontrado"}), 404
-                return jsonify([LivroController.livro_to_dict(livro) for livro in livros]), 200
-
-            # Caso não tenha título nem ID, retorna todos os livros
-            livros = Livro.query.all()
-            return jsonify([LivroController.livro_to_dict(livro) for livro in livros]), 200
-        except Exception as e:
-            return jsonify({"error": "Erro ao buscar os livros", "details": str(e)}), 500
-
-    @staticmethod
-    @app.route("/api/livro/<int:id>", methods=["GET"])
-    def get_livro_by_id(id):
-        try:
-            livro = Livro.query.get(id)
-            if livro is None:
-                return jsonify({"error": "Livro não encontrado"}), 404
-            return jsonify(LivroController.livro_to_dict(livro)), 200
-        except Exception as e:
-            return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
-
-    @staticmethod
-    @app.route("/api/livros", methods=["POST"])
-    @app.route("/api/livros", methods=["POST"])
-    @app.route("/api/livros", methods=["POST"])
-  
-  
-    @app.route("/api/livros", methods=["POST"])
+    @app.route('/api/livros', methods=['POST'])
     def criar_livro():
-        data = request.get_json()
-
-        titulo = data.get("titulo")
-        autor = data.get("autor")
-        prateleira_id = data.get("prateleira_id")
-        categoria = data.get("categoria")
-        ano_publicado = data.get("ano_publicado")
-        biblioteca_id = data.get("biblioteca_id")
-        disponivel = data.get("disponivel")
-
-        # Verificar se o campo categoria foi passado corretamente
-        if not categoria:
-            return jsonify({"error": "Categoria é obrigatória"}), 400
-        
-        biblioteca = db.session.query(Biblioteca).filter_by(id=biblioteca_id).first()
-
-        if not biblioteca:
-            return jsonify({"error": "Biblioteca não encontrada"}), 404
-        
-        
-        prateleira = db.session.query(Prateleira).filter_by(id=prateleira_id).first()
-        
-        if not prateleira:
-            return jsonify({"error": "Prateleira não encontrada."}), 404
-
-        novo_livro = Livro(
-            titulo=titulo,
-            autor=autor,
-            prateleira_id=prateleira_id,
-            categoria=categoria,
-            ano_publicado=ano_publicado,
-            biblioteca_id=biblioteca_id,
-            disponivel=disponivel
-        )
-
         try:
+            data = request.get_json()
+
+            titulo = data.get("titulo")
+            autor = data.get("autor")
+            prateleira_id = data.get("prateleira_id")
+            categoria = data.get("categoria")
+            ano_publicado = data.get("ano_publicado")
+            biblioteca_id = data.get("biblioteca_id")
+            disponivel = data.get("disponivel", True)  # Padrão: disponível
+            quantidade_exemplares = data.get("quantidade_exemplares", 0)
+
+            # Verificar campos obrigatórios
+            if not categoria:
+                return jsonify({"error": "Categoria é obrigatória"}), 400
+
+            biblioteca = db.session.query(Biblioteca).filter_by(id=biblioteca_id).first()
+            if not biblioteca:
+                return jsonify({"error": "Biblioteca não encontrada"}), 404
+
+            prateleira = db.session.query(Prateleira).filter_by(id=prateleira_id).first()
+            if not prateleira:
+                return jsonify({"error": "Prateleira não encontrada."}), 404
+
+            # Criar o livro
+            novo_livro = Livro(
+                titulo=titulo,
+                autor=autor,
+                prateleira_id=prateleira_id,
+                categoria=categoria,
+                ano_publicado=ano_publicado,
+                biblioteca_id=biblioteca_id,
+                disponivel=disponivel
+            )
             db.session.add(novo_livro)
+            db.session.flush()  # Garante que o ID do livro seja gerado
+
+            # Criar exemplares, se quantidade especificada for maior que zero
+            exemplares = []
+            for i in range(quantidade_exemplares):
+                # Gerar código único para o exemplar
+                codigo_inventario = f"{novo_livro.id}-{uuid.uuid4().hex[:8]}-{i + 1}"
+                novo_exemplar = Exemplar(
+                    livro_id=novo_livro.id,
+                    codigo_inventario=codigo_inventario,
+                    disponivel=True,
+                    condicao="Bom",
+                    biblioteca_id=biblioteca_id
+                )
+                exemplares.append(novo_exemplar)
+                db.session.add(novo_exemplar)
+
+            # Confirmar as mudanças no banco
             db.session.commit()
-            return jsonify(novo_livro.to_json()), 201
+            return jsonify({
+                "livro": novo_livro.to_json(),
+                "exemplares_criados": len(exemplares)
+            }), 201
         except Exception as e:
             db.session.rollback()
-            return jsonify({"error": "Erro ao criar livro.", "details": str(e)}), 500
-
-
-    @staticmethod
-    @app.route("/api/livros/<int:id>", methods=["PATCH"])
-    def update_livro(id):
+            return jsonify({"error": "Erro ao criar livro com exemplares.", "details": str(e)}), 500
+        
+    @app.route('/api/livros', methods=['GET'])
+    def get_livro():
         try:
-            data = request.json
-            livro = Livro.query.get(id)
-            if not livro:
-                return jsonify({"error": "Livro não encontrado."}), 404
+            # Fazer um join entre Livro e Biblioteca para obter os dados necessários
+            livros = db.session.query(
+                Livro,
+                Biblioteca.nome.label("biblioteca_nome")
+            ).join(
+                Biblioteca, Livro.biblioteca_id == Biblioteca.id
+            ).all()
 
-            if 'titulo' in data:
-                livro.titulo = data['titulo']
-            if 'autor' in data:
-                livro.autor = data['autor']
-            if 'ano_publicado' in data:
-                livro.ano_publicado = data['ano_publicado']
-            if 'disponivel' in data:
-                livro.disponivel = data['disponivel']
-            if 'status' in data:
-                livro.status = data['status']
+            resultado = []
 
-            db.session.commit()
-            return jsonify({"message": "Livro atualizado com sucesso.", "livro": LivroController.livro_to_dict(livro)}), 200
+            for livro, biblioteca_nome in livros:
+                # Contar exemplares disponíveis
+                exemplares_disponiveis = db.session.query(Exemplar).filter_by(
+                    livro_id=livro.id, disponivel=True
+                ).count()
+
+                # O livro é considerado disponível se houver ao menos um exemplar disponível
+                disponivel = exemplares_disponiveis > 0
+
+                resultado.append({
+                    "id": livro.id,
+                    "titulo": livro.titulo,
+                    "autor": livro.autor,
+                    "categoria": livro.categoria,
+                    "ano_publicado": livro.ano_publicado,
+                    "biblioteca_id": livro.biblioteca_id,
+                    "biblioteca_nome": biblioteca_nome,  # Nome da biblioteca incluído
+                    "quantidade_exemplares": exemplares_disponiveis,
+                    "disponivel": disponivel
+                })
+
+            return jsonify(resultado), 200
         except Exception as e:
-            db.session.rollback()
-            return jsonify({"error": "Erro ao atualizar o livro.", "details": str(e)}), 500
+            return jsonify({"error": "Erro ao obter livros.", "details": str(e)}), 500
 
-    @staticmethod
-    def livro_to_dict(livro):
-        """Método para converter o livro em um dicionário"""
-        return {
-            "id": livro.id,
-            "titulo": livro.titulo,
-            "autor": livro.autor,
-            "ano_publicado": livro.ano_publicado,
-            "disponivel": livro.disponivel,
-            "status": livro.status,
-            "categoria": livro.categoria,
-            "biblioteca_nome": livro.biblioteca.nome  # Supondo que o nome da biblioteca está acessível
-        }
+
 
 #----------------------------------
 class UsuarioController:
@@ -297,22 +274,34 @@ def criar_emprestimo():
     if not livro:
         return jsonify({"error": "Livro não encontrado."}), 404
 
-    # Verifica se o livro está disponível
-    if not livro.disponivel:
-        return jsonify({"error": "O livro já está emprestado."}), 400
+    # Verifica se há exemplares disponíveis para o livro
+    exemplar_disponivel = Exemplar.query.filter_by(livro_id=livro.id, disponivel=True).first()
+    if not exemplar_disponivel:
+        return jsonify({"error": "Não há exemplares disponíveis para empréstimo."}), 400
 
     try:
         # Criar o empréstimo
-        novo_emprestimo = Emprestimo(livro_id=livro.id, usuario_id=usuario_id)
-        print("Livro.disponivel: ------------------")
-        livro.disponivel = False  # Atualiza a disponibilidade do livro
+        novo_emprestimo = Emprestimo(
+            livro_id=livro.id,
+            usuario_id=usuario_id,
+            exemplar_id=exemplar_disponivel.id  # Relaciona com o exemplar
+        )
+
+        # Atualizar a disponibilidade do exemplar
+        exemplar_disponivel.disponivel = False
+
+        # Verificar se ainda há exemplares disponíveis após o empréstimo
+        exemplares_disponiveis = Exemplar.query.filter_by(livro_id=livro.id, disponivel=True).count()
+        livro.disponivel = exemplares_disponiveis > 0  # Atualiza o status do livro
+
+        # Salvar no banco de dados
         db.session.add(novo_emprestimo)
         db.session.commit()
 
         return jsonify({"message": "Empréstimo criado com sucesso."}), 201
 
     except Exception as e:
-        db.session.rollback()  # Garante que a transação será revertida em caso de erro
+        db.session.rollback()  # Reverter transações em caso de erro
         return jsonify({"error": "Erro ao criar empréstimo.", "details": str(e)}), 500
 
 

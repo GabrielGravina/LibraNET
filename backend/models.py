@@ -31,6 +31,8 @@ class Livro(db.Model):
     # Relacionamento com a tabela Exemplar
     exemplares = db.relationship('Exemplar', backref='livro', lazy=True)
 
+    disponivel = db.Column(db.Boolean)
+
     def to_json(self):
         return {
             "id": self.id,
@@ -51,11 +53,10 @@ class Livro(db.Model):
 class Exemplar(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     livro_id = db.Column(db.Integer, db.ForeignKey('livro.id'), nullable=False)
-    codigo_inventario = db.Column(db.String(50), unique=True, nullable=False)  # Identificador único do exemplar
+    codigo_inventario = db.Column(db.String(50), unique=False, nullable=False, default="Default_Code")  #[ ] FIX Unique = False. Identificador único do exemplar
     disponivel = db.Column(db.Boolean, default=True)
     condicao = db.Column(db.String(50), default="Bom")  # Opcional: Condição do exemplar (ex: Bom, Ruim, etc.)
     biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
-
     def to_json(self):
         return {
             "id": self.id,
@@ -85,6 +86,7 @@ class Usuario(db.Model):
 class Emprestimo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     livro_id = db.Column(db.Integer, db.ForeignKey('livro.id'), nullable=False)
+    exemplar_id = db.Column(db.Integer, db.ForeignKey('exemplar.id'), nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
     data_emprestimo = db.Column(db.DateTime, default=datetime.utcnow)
     data_devolucao = db.Column(db.DateTime, nullable=True)

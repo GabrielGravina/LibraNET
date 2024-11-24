@@ -106,7 +106,7 @@ export default function BookPage() {
 	return (
 		<div className="flex-auto w-full m-0 bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
 			<Navbar />
-			<section className="w-2/4 m-auto mb-0 text-black min-h-[92vh]">
+			<section className="w-[100vh] m-auto mb-0 text-black min-h-[92vh]">
 				<h3 className="text-3xl font-bold p-2 py-5 justify-self-center">Listando Livros:</h3>
 				<input
 					className="w-full p-2 mb-4 border border-gray-300 rounded-md shadow-sm focus:ring text-white focus:ring-blue-500"
@@ -218,7 +218,7 @@ export default function BookPage() {
 									<strong>Disponível:</strong> {result.disponivel ? "Sim" : "Não"}
 								</p>
 								<p>
-									<strong>Status:</strong> {result.status}
+									<strong>Exemplares:</strong> {result.quantidade_exemplares}
 								</p>
 								<p>
 									<strong>Biblioteca:</strong> {result.biblioteca_nome}

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 export default function LoanPage() {
 	const { emprestimoId } = useParams(); // Obtém o ID do empréstimo da URL
@@ -77,8 +78,9 @@ export default function LoanPage() {
 	if (error) return <p>{error}</p>;
 
 	return (
-		<div>
-			<h2>Editar Empréstimo</h2>
+		<div className="flex-auto">
+			<Navbar />
+			<h2 className="justify-self-center font-bold text-3xl py-5">Editar Empréstimo</h2>
 
 			{/* Informações do Empréstimo */}
 			{loanData && (

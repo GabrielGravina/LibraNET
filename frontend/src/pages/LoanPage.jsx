@@ -124,7 +124,7 @@ export default function LoanPage() {
 				)}
 
 				{/* Formulário de Edição */}
-				<form onSubmit={handleUpdateLoan} className="space-y-4">
+				<form onSubmit={handleUpdateLoan} className="space-y-4 flex-col ">
 					<h3 className="text-2xl font-bold justify-self-center">Editar Informações</h3>
 					{/* Campo para marcar devolução */}
 					<div className="flex items-center justify-center">
@@ -143,7 +143,7 @@ export default function LoanPage() {
 
 					{/* Campo para editar data de devolução */}
 					<div>
-						<label htmlFor="data_devolucao" className="block">
+						<label htmlFor="data_devolucao" className="block justify-self-center text-xl">
 							Data de Devolução:
 						</label>
 						<input
@@ -152,13 +152,13 @@ export default function LoanPage() {
 							name="data_devolucao"
 							value={loanData.data_devolucao?.split("T")[0] || ""}
 							onChange={handleChange}
-							className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+							className="mt-1 w-1/2 justify-self-center block p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
 						/>
 					</div>
 
 					{/* Campo para ajustar o valor da multa */}
 					<div>
-						<label htmlFor="multa" className="block">
+						<label htmlFor="multa" className="block text-xl justify-self-center">
 							Multa:
 						</label>
 						<input
@@ -168,14 +168,14 @@ export default function LoanPage() {
 							value={loanData.multa?.valor || 0} // Acessa o valor corretamente
 							onChange={handleChange}
 							min="0"
-							className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+							className="mt-1 block w-1/2 justify-self-center p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
 						/>
 					</div>
 
 					{/* Botão para enviar as alterações */}
 					<button
 						type="submit"
-						className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+						className="w-[20vw] justify-self-center content-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
 					>
 						Salvar Alterações
 					</button>

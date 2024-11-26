@@ -106,7 +106,7 @@ class LivroController:
             return jsonify({"error": "Erro ao criar livro com exemplares.", "details": str(e)}), 500
         
     @app.route('/api/livros', methods=['GET'])
-    def get_livro():
+    def get_livros():
         try:
             # Fazer um join entre Livro e Biblioteca para obter os dados necessários
             livros = db.session.query(
@@ -143,7 +143,64 @@ class LivroController:
         except Exception as e:
             return jsonify({"error": "Erro ao obter livros.", "details": str(e)}), 500
 
+    @app.route('/api/livros/<int:livro_id>', methods=['GET'])
+    def get_livro(livro_id):
+        try:
+            # Consulta para encontrar o livro pelo ID
+            livro = db.session.query(Livro).filter_by(id=livro_id).first()
+            
+            # Verifica se o livro foi encontrado
+            if not livro:
+                return jsonify({"error": "Livro não encontrado"}), 404
+            
+            # Retorna os dados do livro em formato JSON
+            return jsonify(livro.to_json()), 200
+        
+        except Exception as e:
+            # Retorna erro genérico em caso de exceção
+            return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
+        
+    @app.route('/api/livros/<int:livro_id>', methods=['PATCH'])
+    def update_livro(livro_id):
+        try:
+            data = request.get_json()
 
+            # Buscar o livro pelo ID
+            livro = db.session.query(Livro).filter_by(id=livro_id).first()
+            if not livro:
+                return jsonify({"error": "Livro não encontrado"}), 404
+
+            # Atualizar os campos fornecidos no payload
+            if "titulo" in data:
+                livro.titulo = data["titulo"]
+            if "autor" in data:
+                livro.autor = data["autor"]
+            if "prateleira_id" in data:
+                prateleira = db.session.query(Prateleira).filter_by(id=data["prateleira_id"]).first()
+                if not prateleira:
+                    return jsonify({"error": "Prateleira não encontrada"}), 404
+                livro.prateleira_id = data["prateleira_id"]
+            if "categoria" in data:
+                livro.categoria = data["categoria"]
+            if "ano_publicado" in data:
+                livro.ano_publicado = data["ano_publicado"]
+            if "biblioteca_id" in data:
+                biblioteca = db.session.query(Biblioteca).filter_by(id=data["biblioteca_id"]).first()
+                if not biblioteca:
+                    return jsonify({"error": "Biblioteca não encontrada"}), 404
+                livro.biblioteca_id = data["biblioteca_id"]
+            if "disponivel" in data:
+                livro.disponivel = data["disponivel"]
+            if "status" in data:
+                livro.status = data["status"]
+
+            # Confirmar as mudanças no banco de dados
+            db.session.commit()
+            return jsonify(livro.to_json()), 200
+
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": "Erro ao atualizar o livro.", "details": str(e)}), 500
 
 #----------------------------------
 class UsuarioController:

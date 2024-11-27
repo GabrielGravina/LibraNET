@@ -110,9 +110,9 @@ export default function LoanPage() {
 						</p>
 						<p className="text-gray-600">
 							<strong>Valor da Multa:</strong>{" "}
-							{loanData.multa?.valor
-								? <p>R$<span className="text-hard-orange font-semibold">{loanData.multa.valor},00</span></p>
-								: "Nenhuma multa aplicada"}
+							{loanData.multa?.valor ? (
+								<span>R$<span className="text-hard-orange font-semibold">{loanData.multa.valor},00</span></span>
+							) : "Nenhuma multa aplicada"}
 						</p>
 						<p className="text-gray-600">
 							<strong>Data de Pagamento:</strong>{" "}
@@ -124,7 +124,7 @@ export default function LoanPage() {
 				)}
 
 				{/* Formulário de Edição */}
-				<form onSubmit={handleUpdateLoan} className="space-y-4 flex-col ">
+				<form onSubmit={handleUpdateLoan} className="space-y-4 flex flex-col items-center">
 					<h3 className="text-2xl font-bold justify-self-center">Editar Informações</h3>
 					{/* Campo para marcar devolução */}
 					<div className="flex items-center justify-center">
@@ -152,7 +152,7 @@ export default function LoanPage() {
 							name="data_devolucao"
 							value={loanData.data_devolucao?.split("T")[0] || ""}
 							onChange={handleChange}
-							className="mt-1 w-1/2 justify-self-center block p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+							className="text-white mt-1 w-full justify-self-center block p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
 						/>
 					</div>
 
@@ -168,14 +168,14 @@ export default function LoanPage() {
 							value={loanData.multa?.valor || 0} // Acessa o valor corretamente
 							onChange={handleChange}
 							min="0"
-							className="mt-1 block w-1/2 justify-self-center p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+							className="text-white mt-1 block w-full justify-self-center p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
 						/>
 					</div>
 
 					{/* Botão para enviar as alterações */}
 					<button
 						type="submit"
-						className="w-[20vw] justify-self-center content-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+						className="w-[20vw] justify-self-center bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
 					>
 						Salvar Alterações
 					</button>

@@ -1,11 +1,7 @@
 export default function EditLoanPage() {
-    
-
-
-    return (
-        <>
-            <h1>Oláaaa</h1>
-        </>
-    )
+	return (
+		<>
+			<h1>Oláaaa</h1>
+		</>
+	);
 }
-

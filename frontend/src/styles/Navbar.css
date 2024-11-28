@@ -1,15 +1,16 @@
 .navbar {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+
 }
 
 .navbar ul {
-    display: flex;
-    list-style: none;
+	display: flex;
+	list-style: none;
 }
 
 .navbar ul li {
-    font-size: 1.5rem;
-    padding: 2rem;
+	font-size: 1.5rem;
+	padding: 2rem;
 }

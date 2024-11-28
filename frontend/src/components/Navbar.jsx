@@ -47,7 +47,6 @@ function Navbar() {
 						Buscar Livros
 					</Link>
 				</li>
-
 				{/* Menu Buscar Empréstimos */}
 				<li className="px-4 py-2 hover:opacity-80">
 					<Link to={`/emprestimos`} className="font-semibold text-lg flex items-center space-x-2">

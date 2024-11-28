@@ -20,7 +20,7 @@ with app.app_context():
     db.create_all()
     from populate_data import populate_data  # Mover a importação aqui
     populate_data(db)  # Chama a função de populamento
-    print(app.url_map)  # Adicione esta linha para ver as rotas
+   # print(app.url_map)  # Adicione esta linha para ver as rotas
 
 
 if __name__ == "__main__":

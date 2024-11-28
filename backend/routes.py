@@ -1,6 +1,6 @@
 from app import app, db
 from flask import request, jsonify
-from models import Biblioteca, Livro, Usuario, Emprestimo, Multa, Prateleira
+from models import Biblioteca, Livro, Usuario, Emprestimo, Multa, Prateleira, Exemplar
 from datetime import datetime, timedelta
 
 
@@ -37,125 +37,170 @@ def create_biblioteca():
 
 # Isso filtra os resultados para a biblioteca selecionada
 
-class LivroController:
+import uuid
 
+class LivroController:
     @staticmethod
+    @app.route('/api/livros', methods=['POST'])
+    def criar_livro():
+        try:
+            data = request.get_json()
+
+            titulo = data.get("titulo")
+            autor = data.get("autor")
+            prateleira_id = data.get("prateleira_id")
+            categoria = data.get("categoria")
+            ano_publicado = data.get("ano_publicado")
+            biblioteca_id = data.get("biblioteca_id")
+            disponivel = data.get("disponivel", True)  # Padrão: disponível
+            quantidade_exemplares = data.get("quantidade_exemplares", 0)
+
+            # Verificar campos obrigatórios
+            if not categoria:
+                return jsonify({"error": "Categoria é obrigatória"}), 400
+
+            biblioteca = db.session.query(Biblioteca).filter_by(id=biblioteca_id).first()
+            if not biblioteca:
+                return jsonify({"error": "Biblioteca não encontrada"}), 404
+
+            prateleira = db.session.query(Prateleira).filter_by(id=prateleira_id).first()
+            if not prateleira:
+                return jsonify({"error": "Prateleira não encontrada."}), 404
+
+            # Criar o livro
+            novo_livro = Livro(
+                titulo=titulo,
+                autor=autor,
+                prateleira_id=prateleira_id,
+                categoria=categoria,
+                ano_publicado=ano_publicado,
+                biblioteca_id=biblioteca_id,
+                disponivel=disponivel
+            )
+            db.session.add(novo_livro)
+            db.session.flush()  # Garante que o ID do livro seja gerado
+
+            # Criar exemplares, se quantidade especificada for maior que zero
+            exemplares = []
+            for i in range(quantidade_exemplares):
+                # Gerar código único para o exemplar
+                codigo_inventario = f"{novo_livro.id}-{uuid.uuid4().hex[:8]}-{i + 1}"
+                novo_exemplar = Exemplar(
+                    livro_id=novo_livro.id,
+                    codigo_inventario=codigo_inventario,
+                    disponivel=True,
+                    condicao="Bom",
+                    biblioteca_id=biblioteca_id
+                )
+                exemplares.append(novo_exemplar)
+                db.session.add(novo_exemplar)
+
+            # Confirmar as mudanças no banco
+            db.session.commit()
+            return jsonify({
+                "livro": novo_livro.to_json(),
+                "exemplares_criados": len(exemplares)
+            }), 201
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": "Erro ao criar livro com exemplares.", "details": str(e)}), 500
+        
     @app.route('/api/livros', methods=['GET'])
     def get_livros():
         try:
-            # Verifica se há um título ou ID na query string
-            livro_id = request.args.get('id')
-            titulo = request.args.get('titulo')
+            # Fazer um join entre Livro e Biblioteca para obter os dados necessários
+            livros = db.session.query(
+                Livro,
+                Biblioteca.nome.label("biblioteca_nome")
+            ).join(
+                Biblioteca, Livro.biblioteca_id == Biblioteca.id
+            ).all()
 
-            if livro_id:
-                livro = Livro.query.get(livro_id)
-                if livro is None:
-                    return jsonify({"error": "Livro não encontrado"}), 404
-                return jsonify(LivroController.livro_to_dict(livro)), 200
+            resultado = []
 
-            if titulo:
-                livros = Livro.query.filter(Livro.titulo.ilike(f"%{titulo}%")).all()
-                if not livros:
-                    return jsonify({"error": "Livro não encontrado"}), 404
-                return jsonify([LivroController.livro_to_dict(livro) for livro in livros]), 200
+            for livro, biblioteca_nome in livros:
+                # Contar exemplares disponíveis
+                exemplares_disponiveis = db.session.query(Exemplar).filter_by(
+                    livro_id=livro.id, disponivel=True
+                ).count()
 
-            # Caso não tenha título nem ID, retorna todos os livros
-            livros = Livro.query.all()
-            return jsonify([LivroController.livro_to_dict(livro) for livro in livros]), 200
+                # O livro é considerado disponível se houver ao menos um exemplar disponível
+                disponivel = exemplares_disponiveis > 0
+
+                resultado.append({
+                    "id": livro.id,
+                    "titulo": livro.titulo,
+                    "autor": livro.autor,
+                    "categoria": livro.categoria,
+                    "ano_publicado": livro.ano_publicado,
+                    "biblioteca_id": livro.biblioteca_id,
+                    "biblioteca_nome": biblioteca_nome,  # Nome da biblioteca incluído
+                    "quantidade_exemplares": exemplares_disponiveis,
+                    "disponivel": disponivel
+                })
+
+            return jsonify(resultado), 200
         except Exception as e:
-            return jsonify({"error": "Erro ao buscar os livros", "details": str(e)}), 500
+            return jsonify({"error": "Erro ao obter livros.", "details": str(e)}), 500
 
-    @staticmethod
-    @app.route("/api/livro/<int:id>", methods=["GET"])
-    def get_livro_by_id(id):
+    @app.route('/api/livros/<int:livro_id>', methods=['GET'])
+    def get_livro(livro_id):
         try:
-            livro = Livro.query.get(id)
-            if livro is None:
-                return jsonify({"error": "Livro não encontrado"}), 404
-            return jsonify(LivroController.livro_to_dict(livro)), 200
-        except Exception as e:
-            return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
-
-    @staticmethod
-    @app.route("/api/livros", methods=["POST"])
-    @app.route("/api/livros", methods=["POST"])
-    @app.route("/api/livros", methods=["POST"])
-  
-  
-    @app.route("/api/livros", methods=["POST"])
-    def criar_livro():
-        data = request.get_json()
-
-        titulo = data.get("titulo")
-        autor = data.get("autor")
-        prateleira_id = data.get("prateleira_id")
-        categoria = data.get("categoria")
-        ano_publicado = data.get("ano_publicado")
-        biblioteca_id = data.get("biblioteca_id")
-        disponivel = data.get("disponivel")
-
-        # Verificar se o campo categoria foi passado corretamente
-        if not categoria:
-            return jsonify({"error": "Categoria é obrigatória"}), 400
-
-        novo_livro = Livro(
-            titulo=titulo,
-            autor=autor,
-            prateleira_id=prateleira_id,
-            categoria=categoria,
-            ano_publicado=ano_publicado,
-            biblioteca_id=biblioteca_id,
-            disponivel=disponivel
-        )
-
-        try:
-            db.session.add(novo_livro)
-            db.session.commit()
-            return jsonify(novo_livro.to_json()), 201
-        except Exception as e:
-            db.session.rollback()
-            return jsonify({"error": "Erro ao criar livro.", "details": str(e)}), 500
-
-
-    @staticmethod
-    @app.route("/api/livros/<int:id>", methods=["PATCH"])
-    def update_livro(id):
-        try:
-            data = request.json
-            livro = Livro.query.get(id)
+            # Consulta para encontrar o livro pelo ID
+            livro = db.session.query(Livro).filter_by(id=livro_id).first()
+            
+            # Verifica se o livro foi encontrado
             if not livro:
-                return jsonify({"error": "Livro não encontrado."}), 404
+                return jsonify({"error": "Livro não encontrado"}), 404
+            
+            # Retorna os dados do livro em formato JSON
+            return jsonify(livro.to_json()), 200
+        
+        except Exception as e:
+            # Retorna erro genérico em caso de exceção
+            return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
+        
+    @app.route('/api/livros/<int:livro_id>', methods=['PATCH'])
+    def update_livro(livro_id):
+        try:
+            data = request.get_json()
 
-            if 'titulo' in data:
-                livro.titulo = data['titulo']
-            if 'autor' in data:
-                livro.autor = data['autor']
-            if 'ano_publicado' in data:
-                livro.ano_publicado = data['ano_publicado']
-            if 'disponivel' in data:
-                livro.disponivel = data['disponivel']
-            if 'status' in data:
-                livro.status = data['status']
+            # Buscar o livro pelo ID
+            livro = db.session.query(Livro).filter_by(id=livro_id).first()
+            if not livro:
+                return jsonify({"error": "Livro não encontrado"}), 404
 
+            # Atualizar os campos fornecidos no payload
+            if "titulo" in data:
+                livro.titulo = data["titulo"]
+            if "autor" in data:
+                livro.autor = data["autor"]
+            if "prateleira_id" in data:
+                prateleira = db.session.query(Prateleira).filter_by(id=data["prateleira_id"]).first()
+                if not prateleira:
+                    return jsonify({"error": "Prateleira não encontrada"}), 404
+                livro.prateleira_id = data["prateleira_id"]
+            if "categoria" in data:
+                livro.categoria = data["categoria"]
+            if "ano_publicado" in data:
+                livro.ano_publicado = data["ano_publicado"]
+            if "biblioteca_id" in data:
+                biblioteca = db.session.query(Biblioteca).filter_by(id=data["biblioteca_id"]).first()
+                if not biblioteca:
+                    return jsonify({"error": "Biblioteca não encontrada"}), 404
+                livro.biblioteca_id = data["biblioteca_id"]
+            if "disponivel" in data:
+                livro.disponivel = data["disponivel"]
+            if "status" in data:
+                livro.status = data["status"]
+
+            # Confirmar as mudanças no banco de dados
             db.session.commit()
-            return jsonify({"message": "Livro atualizado com sucesso.", "livro": LivroController.livro_to_dict(livro)}), 200
+            return jsonify(livro.to_json()), 200
+
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": "Erro ao atualizar o livro.", "details": str(e)}), 500
-
-    @staticmethod
-    def livro_to_dict(livro):
-        """Método para converter o livro em um dicionário"""
-        return {
-            "id": livro.id,
-            "titulo": livro.titulo,
-            "autor": livro.autor,
-            "ano_publicado": livro.ano_publicado,
-            "disponivel": livro.disponivel,
-            "status": livro.status,
-            "categoria": livro.categoria,
-            "biblioteca_nome": livro.biblioteca.nome  # Supondo que o nome da biblioteca está acessível
-        }
 
 #----------------------------------
 class UsuarioController:
@@ -230,6 +275,7 @@ class UsuarioController:
         }
 
 # CRUD para Empréstimos
+
 @app.route("/api/emprestimos", methods=["GET"])
 def get_emprestimos():
     emprestimos = Emprestimo.query.all()
@@ -245,31 +291,37 @@ def get_emprestimos():
         result.append(emprestimo_data)
     return jsonify(result), 200
 
+
 # Busca um empréstimo específico pelo ID
-@app.route("/api/emprestimo/<int:emprestimo_id>", methods=["GET"])
-def get_emprestimo_by_id(emprestimo_id):
+@app.route('/api/emprestimo/<int:emprestimo_id>', methods=['GET'])
+def get_emprestimo(emprestimo_id):
     emprestimo = Emprestimo.query.get(emprestimo_id)
-    
     if not emprestimo:
-        return jsonify({"error": "Empréstimo não encontrado"}), 404
+        return jsonify({"error": "Empréstimo não encontrado."}), 404
 
-    # Busca a multa associada ao empréstimo
-    multa = emprestimo.multa  # Acessa a relação de multa
+    # O livro agora é acessado diretamente pela relação do Emprestimo
+    livro = emprestimo.livro  # Agora já existe a relação direta
 
-    # Constrói o dicionário de resposta
+    # A lógica de multa agora checa se existe e se data_pagamento não é None
+    multa_data = None
+    if emprestimo.multa:
+        multa_data = {
+            "valor": emprestimo.multa.valor,
+            "data_pagamento": emprestimo.multa.data_pagamento.isoformat() if emprestimo.multa.data_pagamento else None
+        }
+
     emprestimo_data = {
         "emprestimo_id": emprestimo.id,
         "usuario_nome": emprestimo.usuario.nome,
-        "data_emprestimo": emprestimo.data_emprestimo,
-        "data_devolucao": emprestimo.data_devolucao,
+        "livro_titulo": livro.titulo if livro else None,  # Inclui o título do livro
+        "data_emprestimo": emprestimo.data_emprestimo.isoformat(),
+        "data_devolucao": emprestimo.data_devolucao.isoformat() if emprestimo.data_devolucao else None,
         "devolvido": emprestimo.devolvido,
-        "multa": {
-            "valor": multa.valor if multa else None,  # Adiciona o valor da multa, se existir
-            "data_pagamento": multa.data_pagamento if multa else None  # Adiciona a data de pagamento, se existir
-        }
+        "multa": multa_data,
     }
-    
-    return jsonify(emprestimo_data), 200
+
+    return jsonify(emprestimo_data)
+
 
 
 @app.route('/api/emprestimos', methods=['POST'])
@@ -278,23 +330,45 @@ def criar_emprestimo():
     livro_id = data.get('livro_id')
     usuario_id = data.get('usuario_id')
 
+    # Validações básicas
+    if not livro_id or not usuario_id:
+        return jsonify({"error": "Campos livro_id e usuario_id são obrigatórios."}), 400
+
+    # Busca o livro
     livro = Livro.query.filter_by(id=livro_id).first()
-    if livro is None:
+    if not livro:
         return jsonify({"error": "Livro não encontrado."}), 404
 
-    # Verifique o status do livro
-    print(f"Status do livro {livro.id}: disponível = {livro.disponivel}")  # Log para verificar o status do livro
+    # Verifica se há exemplares disponíveis para o livro
+    exemplar_disponivel = Exemplar.query.filter_by(livro_id=livro.id, disponivel=True).first()
+    if not exemplar_disponivel:
+        return jsonify({"error": "Não há exemplares disponíveis para empréstimo."}), 400
 
-    if not livro.disponivel:
-        return jsonify({"error": "O livro já está emprestado."}), 400
+    try:
+        # Criar o empréstimo
+        novo_emprestimo = Emprestimo(
+            livro_id=livro.id,
+            usuario_id=usuario_id,
+            exemplar_id=exemplar_disponivel.id  # Relaciona com o exemplar
+        )
 
-    # Criar o empréstimo
-    novo_emprestimo = Emprestimo(livro_id=livro.id, usuario_id=usuario_id)
-    livro.disponivel = False  # Marca o livro como emprestado
-    db.session.add(novo_emprestimo)
-    db.session.commit()
+        # Atualizar a disponibilidade do exemplar
+        exemplar_disponivel.disponivel = False
 
-    return jsonify({"message": "Empréstimo criado com sucesso."}), 201
+        # Verificar se ainda há exemplares disponíveis após o empréstimo
+        exemplares_disponiveis = Exemplar.query.filter_by(livro_id=livro.id, disponivel=True).count()
+        livro.disponivel = exemplares_disponiveis > 0  # Atualiza o status do livro
+
+        # Salvar no banco de dados
+        db.session.add(novo_emprestimo)
+        db.session.commit()
+
+        return jsonify({"message": "Empréstimo criado com sucesso."}), 201
+
+    except Exception as e:
+        db.session.rollback()  # Reverter transações em caso de erro
+        return jsonify({"error": "Erro ao criar empréstimo.", "details": str(e)}), 500
+
 
     
 
@@ -311,6 +385,9 @@ def buscar_emprestimos_por_nome(nome):
             usuario_emprestimos = db.session.query(Emprestimo).filter(Emprestimo.usuario_id == usuario.id).all()
             
             for emp in usuario_emprestimos:
+                # Buscar o livro associado ao empréstimo
+                livro = db.session.query(Livro).filter(Livro.id == emp.livro_id).first()
+
                 # Buscar as multas associadas ao empréstimo
                 multas = db.session.query(Multa).filter(Multa.emprestimo_id == emp.id).all()
                 valor_multa = sum(multa.valor for multa in multas) if multas else 0.0  # Soma todas as multas, se houver
@@ -318,6 +395,7 @@ def buscar_emprestimos_por_nome(nome):
                 emprestimos.append({
                     "emprestimo_id": emp.id,
                     "usuario_nome": usuario.nome,
+                    "livro_titulo": livro.titulo if livro else "Livro não encontrado",  # Adiciona o nome do livro
                     "data_emprestimo": emp.data_emprestimo,
                     "data_devolucao": emp.data_devolucao,
                     "devolvido": emp.devolvido,

@@ -27,8 +27,8 @@ function CreateBookPage() {
     }
 
     // Verificando se o ano de publicação é válido
-    if (anoPublicacao < 1900 || anoPublicacao > new Date().getFullYear()) {
-      setErrorMessage("O ano de publicação deve ser entre 1900 e o ano atual.");
+    if (anoPublicacao < 0 || anoPublicacao > new Date().getFullYear()) {
+      setErrorMessage("O ano de publicação deve ser entre 0 e o ano atual.");
       setIsSubmitting(false);
       return;
     }

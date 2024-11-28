@@ -20,38 +20,28 @@ export default function BookPage() {
     const fetchBookData = async () => {
       try {
         const response = await fetch(
-          `http://127.0.0.1:5000/api/livro/${livro_id}`
+          `http://127.0.0.1:5000/api/livros/${livro_id}`
         );
         if (!response.ok) {
           throw new Error("Erro ao buscar dados do livro.");
         }
-        
-        const data = await response.json();
-        console.log("Dados retornados da API:", data);  // Verifique como a resposta da API está estruturada
 
-        // Se a resposta for um objeto e não um array, use o objeto diretamente
-        if (data && data.titulo) {
-          setBookData({
-            titulo: data.titulo || "",
-            autor: data.autor || "",
-            prateleira: data.prateleira || "",
-            ano_publicado: data.ano_publicado || "",
-            disponivel: data.disponivel || false,
-            status: data.status || "",
-            biblioteca_id: data.biblioteca_id || "",
-          });
-        } else {
-          // Se não houver dados válidos, mantemos os valores padrões
-          setBookData({
-            titulo: "",
-            autor: "",
-            prateleira: "",
-            ano_publicado: "",
-            disponivel: false,
-            status: "",
-            biblioteca_id: "",
-          });
-        }
+        const data = await response.json();
+        console.log("Dados retornados da API:", data);
+
+        // Atualiza somente se os dados retornarem corretamente
+        setBookData({
+          titulo: data.titulo || "Não informado",
+          autor: data.autor || "Não informado",
+          prateleira:
+            typeof data.prateleira === "object"
+              ? `Código: ${data.prateleira.codigo}, Localização: ${data.prateleira.localizacao}`
+              : data.prateleira || "Não informado",
+          ano_publicado: data.ano_publicado || "Não informado",
+          disponivel: data.disponivel || false,
+          status: data.status || "Não informado",
+          biblioteca_id: data.biblioteca_id || "Não informado",
+        });
       } catch (error) {
         setError(error.message);
       } finally {
@@ -62,14 +52,9 @@ export default function BookPage() {
     fetchBookData();
   }, [livro_id]);
 
-  // Efeito para logar bookData sempre que ele mudar
-  useEffect(() => {
-    console.log("Dados do livro atualizados:", bookData);
-  }, [bookData]);
-
-  // Atualiza os dados do livro no servidor
   const handleUpdateBook = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
     try {
       const response = await fetch(
         `http://127.0.0.1:5000/api/livros/${livro_id}`,
@@ -85,14 +70,18 @@ export default function BookPage() {
         throw new Error("Erro ao atualizar os dados do livro.");
       }
       const updatedData = await response.json();
-      setBookData(updatedData.livro); // Atualiza com dados novos
+      setBookData({
+        ...bookData,
+        ...updatedData.livro,
+      });
       alert("Livro atualizado com sucesso!");
     } catch (error) {
-      alert(error.message);
+      alert(`Erro: ${error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Atualiza os valores dos campos no estado
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setBookData((prevData) => ({
@@ -102,11 +91,16 @@ export default function BookPage() {
   };
 
   if (isLoading) return <p>Carregando dados do livro...</p>;
-  if (error) return <p>{error}</p>;
+
+  if (error)
+    return (
+      <div className="p-4 bg-red-100 text-red-700 rounded-md">
+        <p>Erro: {error}</p>
+      </div>
+    );
 
   return (
     <div className="flex-auto flex-col mb-6">
-      {/* Informações do Livro */}
       {bookData && (
         <div className="flex-col mb-6 p-6 bg-gray-100 rounded-md shadow-md">
           <h3 className="text-xl font-semibold text-gray-700 mb-4">
@@ -136,90 +130,97 @@ export default function BookPage() {
         </div>
       )}
 
-      {/* Formulário para editar os dados do livro */}
       <form onSubmit={handleUpdateBook} className="space-y-4">
-        <div className="flex flex-col">
-          <label className="text-gray-700 mb-1">Título:</label>
-          <input
-            className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            type="text"
-            name="titulo"
-            value={bookData.titulo}
-            onChange={handleChange}
-          />
-        </div>
+      <div className="flex flex-col">
+        <label className="text-gray-700 mb-1">Título:</label>
+        <input
+          className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          type="text"
+          name="titulo"
+          value={bookData.titulo}
+          onChange={handleChange}
+        />
+      </div>
 
-        <div className="flex flex-col">
-          <label className="text-gray-700 mb-1">Autor:</label>
-          <input
-            className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            type="text"
-            name="autor"
-            value={bookData.autor}
-            onChange={handleChange}
-          />
-        </div>
+      <div className="flex flex-col">
+        <label className="text-gray-700 mb-1">Autor:</label>
+        <input
+          className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          type="text"
+          name="autor"
+          value={bookData.autor}
+          onChange={handleChange}
+        />
+      </div>
 
-        <div className="flex flex-col">
-          <label className="text-gray-700 mb-1">Prateleira:</label>
-          <input
-            className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            type="text"
-            name="prateleira"
-            value={bookData.prateleira}
-            onChange={handleChange}
-          />
-        </div>
+      <div className="flex flex-col">
+        <label className="text-gray-700 mb-1">Prateleira:</label>
+        <input
+          className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          type="text"
+          name="prateleira"
+          value={bookData.prateleira}
+          onChange={handleChange}
+        />
+      </div>
 
-        <div className="flex flex-col">
-          <label className="text-gray-700 mb-1">Ano Publicado:</label>
-          <input
-            className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            type="text"
-            name="ano_publicado"
-            value={bookData.ano_publicado}
-            onChange={handleChange}
-          />
-        </div>
+      <div className="flex flex-col">
+        <label className="text-gray-700 mb-1">Ano Publicado:</label>
+        <input
+          className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          type="text"
+          name="ano_publicado"
+          value={bookData.ano_publicado}
+          onChange={handleChange}
+        />
+      </div>
 
-        <div className="flex items-center space-x-2">
-          <label className="text-gray-700">Disponível:</label>
-          <input
-            className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            type="checkbox"
-            name="disponivel"
-            checked={bookData.disponivel}
-            onChange={handleChange}
-          />
-        </div>
+      <div className="flex items-center space-x-2">
+        <label className="text-gray-700">Disponível:</label>
+        <input
+          className="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          type="checkbox"
+          name="disponivel"
+          checked={bookData.disponivel}
+          onChange={handleChange}
+        />
+      </div>
 
-        <div className="flex flex-col">
-          <label className="text-gray-700 mb-1">Status:</label>
-          <select
-            className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            name="status"
-            value={bookData.status}
-            onChange={handleChange}
-          >
-            <option value="Conservado">Conservado</option>
-            <option value="Danificado">Danificado</option>
-            <option value="Perdido">Perdido</option>
-            <option value="Em Reparação">Em Reparação</option>
-            <option value="Desconhecido">Desconhecido</option>
-          </select>
-        </div>
+      <div className="flex flex-col">
+        <label className="text-gray-700 mb-1">Status:</label>
+        <select
+          className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          name="status"
+          value={bookData.status}
+          onChange={handleChange}
+        >
+          <option value="Conservado">Conservado</option>
+          <option value="Danificado">Danificado</option>
+          <option value="Perdido">Perdido</option>
+          <option value="Em Reparação">Em Reparação</option>
+          <option value="Desconhecido">Desconhecido</option>
+        </select>
+      </div>
 
-        <div className="flex flex-col">
-          <label className="text-gray-700 mb-1">Biblioteca ID:</label>
-          <input
-            className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            type="number"
-            name="biblioteca_id"
-            value={bookData.biblioteca_id}
-            onChange={handleChange}
-          />
-        </div>
+      <div className="flex flex-col">
+        <label className="text-gray-700 mb-1">Biblioteca ID:</label>
+        <input
+          className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          type="number"
+          name="biblioteca_id"
+          value={bookData.biblioteca_id}
+          onChange={handleChange}
+        />
+      </div>
 
+      <button
+        type="submit"
+        className="mt-4 w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+      >
+        Atualizar Livro
+      </button>
+
+        {/* Repita o mesmo padrão para os demais campos */}
         <button
           type="submit"
           className="mt-4 w-full py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"

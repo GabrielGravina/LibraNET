@@ -95,72 +95,74 @@ function CreateLoanPage() {
   return (
     <>
       <Navbar />
-      <div className="max-w-lg mx-auto mt-6 p-6 bg-white shadow-md rounded-lg text-black">
-        <h1 className="text-2xl font-semibold mb-4">Criar Empréstimo</h1>
+      <div className="flex flex-col justify-start bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh] pt-10">
+        <div className="max-w-[40vw] min-w-[20vw] mx-auto p-6 bg-white shadow-md rounded-lg text-black">
+          <h1 className="text-2xl font-semibold mb-4">Criar Empréstimo</h1>
 
-        {/* Exibição de erros */}
-        {errorMessage && (
-          <div className="mb-4 text-red-500">{errorMessage}</div>
-        )}
+          {/* Exibição de erros */}
+          {errorMessage && (
+            <div className="mb-4 text-red-500">{errorMessage}</div>
+          )}
 
-        <form onSubmit={handleSubmit}>
-          {/* Select para escolher livro */}
-          <div className="mb-4">
-            <label htmlFor="livro" className="block text-lg font-medium mb-2">
-              Selecione o Livro
-            </label>
-            <select
-              id="livro"
-              className="w-full p-2 border border-gray-300 rounded-md text-white"
-              value={livroId}
-              onChange={(e) => {
-                console.log("Livro selecionado:", e.target.value); // Log para verificar o livro selecionado
-                setLivroId(e.target.value);
-              }}
-              required
+          <form onSubmit={handleSubmit}>
+            {/* Select para escolher livro */}
+            <div className="mb-4">
+              <label htmlFor="livro" className="block text-lg font-medium mb-2">
+                Selecione o Livro
+              </label>
+              <select
+                id="livro"
+                className="w-full p-2 border border-gray-300 rounded-md text-white"
+                value={livroId}
+                onChange={(e) => {
+                  console.log("Livro selecionado:", e.target.value); // Log para verificar o livro selecionado
+                  setLivroId(e.target.value);
+                }}
+                required
+              >
+                <option value="">Selecione um livro</option>
+                {livros.map((livro) => (
+                  <option key={livro.id} value={livro.id}>
+                    {livro.titulo}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Select para escolher usuário */}
+            <div className="mb-4">
+              <label htmlFor="usuario" className="block text-lg font-medium mb-2">
+                Selecione o Usuário
+              </label>
+              <select
+                id="usuario"
+                className="w-full p-2 border border-gray-300 rounded-md text-white"
+                value={usuarioId}
+                onChange={(e) => {
+                  console.log("Usuário selecionado:", e.target.value); // Log para verificar o usuário selecionado
+                  setUsuarioId(e.target.value);  // Armazenando o ID do usuário
+                }}
+                required
+              >
+                <option value="">Selecione um usuário</option>
+                {usuarios.map((usuario) => (
+                  <option key={usuario.id} value={usuario.id}>
+                    {usuario.nome}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Botão de submit */}
+            <button
+              type="submit"
+              className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 disabled:opacity-50"
+              disabled={isSubmitting}
             >
-              <option value="">Selecione um livro</option>
-              {livros.map((livro) => (
-                <option key={livro.id} value={livro.id}>
-                  {livro.titulo}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Select para escolher usuário */}
-          <div className="mb-4">
-            <label htmlFor="usuario" className="block text-lg font-medium mb-2">
-              Selecione o Usuário
-            </label>
-            <select
-              id="usuario"
-              className="w-full p-2 border border-gray-300 rounded-md text-white"
-              value={usuarioId}
-              onChange={(e) => {
-                console.log("Usuário selecionado:", e.target.value); // Log para verificar o usuário selecionado
-                setUsuarioId(e.target.value);  // Armazenando o ID do usuário
-              }}
-              required
-            >
-              <option value="">Selecione um usuário</option>
-              {usuarios.map((usuario) => (
-                <option key={usuario.id} value={usuario.id}>
-                  {usuario.nome}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Botão de submit */}
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 disabled:opacity-50"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Criando..." : "Criar Empréstimo"}
-          </button>
-        </form>
+              {isSubmitting ? "Criando..." : "Criar Empréstimo"}
+            </button>
+          </form>
+        </div>
       </div>
     </>
   );

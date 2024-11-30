@@ -53,7 +53,7 @@ class LivroController:
             ano_publicado = data.get("ano_publicado")
             biblioteca_id = data.get("biblioteca_id")
             disponivel = data.get("disponivel", True)  # Padrão: disponível
-            quantidade_exemplares = data.get("quantidade_exemplares", 0)
+            quantidade_exemplares = int(data.get("quantidade_exemplares", 0))
 
             # Verificar campos obrigatórios
             if not categoria:

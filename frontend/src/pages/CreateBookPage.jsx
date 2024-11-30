@@ -10,6 +10,7 @@ function CreateBookPage() {
   const [prateleiraId, setPrateleiraId] = useState(""); // Adicionando o estado para prateleira_id
   const [bibliotecaId, setBibliotecaId] = useState(""); // Adicionando o estado para biblioteca_id
   const [errorMessage, setErrorMessage] = useState("");
+  const [quantidadeExemplares, setQuantidadeExemplares] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
@@ -52,11 +53,12 @@ function CreateBookPage() {
       autor,
       ano_publicacao: anoPublicacao,
       categoria,
-      prateleira_id: prateleiraId,  // Adicionando prateleira_id ao corpo da requisição
-      biblioteca_id: bibliotecaId,  // Adicionando biblioteca_id ao corpo da requisição
+      prateleira_id: prateleiraId,  
+      biblioteca_id: bibliotecaId,  
+      quantidade_exemplares: quantidadeExemplares
     };
 
-    console.log("Dados do livro enviados:", newBook); // Log para verificar os dados enviados
+    console.log("Dados do livro enviados:", newBook);
 
     try {
       const response = await fetch("http://127.0.0.1:5000/api/livros", {
@@ -182,6 +184,21 @@ function CreateBookPage() {
                     className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
                     value={bibliotecaId}
                     onChange={(e) => setBibliotecaId(e.target.value)}
+                    required
+                />
+                </div>
+
+                {/* Campo para número de exemplares que serão criados */}
+                <div className="mb-4">
+                <label htmlFor="bibliotecaId" className="block text-lg font-medium mb-2">
+                    Número de exemplares
+                </label>
+                <input
+                    type="number"
+                    id="quantidadeExemplares"
+                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
+                    value={quantidadeExemplares}
+                    onChange={(e) => setQuantidadeExemplares(e.target.value)}
                     required
                 />
                 </div>

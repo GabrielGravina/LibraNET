@@ -106,7 +106,7 @@ class LivroController:
             return jsonify({"error": "Erro ao criar livro com exemplares.", "details": str(e)}), 500
         
     @app.route('/api/livros', methods=['GET'])
-    def get_livros():
+    def get_livros_disponiveis():
         try:
             # Fazer um join entre Livro e Biblioteca para obter os dados necessários
             livros = db.session.query(
@@ -125,19 +125,20 @@ class LivroController:
                 ).count()
 
                 # O livro é considerado disponível se houver ao menos um exemplar disponível
+                
                 disponivel = exemplares_disponiveis > 0
-
-                resultado.append({
-                    "id": livro.id,
-                    "titulo": livro.titulo,
-                    "autor": livro.autor,
-                    "categoria": livro.categoria,
-                    "ano_publicado": livro.ano_publicado,
-                    "biblioteca_id": livro.biblioteca_id,
-                    "biblioteca_nome": biblioteca_nome,  # Nome da biblioteca incluído
-                    "quantidade_exemplares": exemplares_disponiveis,
-                    "disponivel": disponivel
-                })
+                if disponivel > 0:
+                    resultado.append({
+                        "id": livro.id,
+                        "titulo": livro.titulo,
+                        "autor": livro.autor,
+                        "categoria": livro.categoria,
+                        "ano_publicado": livro.ano_publicado,
+                        "biblioteca_id": livro.biblioteca_id,
+                        "biblioteca_nome": biblioteca_nome,  # Nome da biblioteca incluído
+                        "quantidade_exemplares": exemplares_disponiveis,
+                        "disponivel": disponivel
+                    })
 
             return jsonify(resultado), 200
         except Exception as e:
@@ -218,14 +219,17 @@ class UsuarioController:
                 return jsonify({"error": "CPF e senha são obrigatórios!"}), 400
 
             usuario = Usuario.query.filter_by(cpf=cpf).first()
-
+            print(usuario.id)
             if usuario and usuario.senha == senha:
                 is_admin = usuario.cpf == "adminCpf"  # Lógica para verificar se o usuário é admin
                 return jsonify({
                     "cpf": usuario.cpf,
                     "nome": usuario.nome,
-                    "admin": usuario.admin  # Envia o status de admin no retorno
+                    "admin": usuario.admin,  # Envia o status de admin no retorno
+                    "id": usuario.id
+                    
                 })
+                
             else:
                 return jsonify({"error": "Credenciais inválidas!"}), 401
         except Exception as e:
@@ -370,7 +374,36 @@ def criar_emprestimo():
         return jsonify({"error": "Erro ao criar empréstimo.", "details": str(e)}), 500
 
 
-    
+@app.route("/api/emprestimo/user/<int:usuario_id>", methods=["GET"])
+def buscar_emprestimos_do_usuario(usuario_id):
+    try:
+        emprestimos = db.session.query(Emprestimo).filter(Emprestimo.usuario_id == usuario_id).all()
+
+        # Lista para armazenar os dados dos empréstimos
+        emprestimos_response = []
+        for emp in emprestimos:
+            # Buscar o livro associado ao empréstimo
+            livro = db.session.query(Livro).filter(Livro.id == emp.livro_id).first()
+
+            # Buscar as multas associadas ao empréstimo
+            multas = db.session.query(Multa).filter(Multa.emprestimo_id == emp.id).all()
+            valor_multa = sum(multa.valor for multa in multas) if multas else 0.0  # Soma todas as multas, se houver
+
+            emprestimos_response.append({
+                "emprestimo_id": emp.id,
+                "livro_titulo": livro.titulo if livro else "Livro não encontrado",  # Adiciona o nome do livro
+                "data_emprestimo": emp.data_emprestimo,
+                "data_devolucao": emp.data_devolucao,
+                "devolvido": emp.devolvido,
+                "multa": valor_multa  # Inclui o valor da multa total
+            })
+
+        return jsonify(emprestimos_response), 200
+
+    except Exception as e:
+        print("Erro ao buscar empréstimos:", str(e))
+        return jsonify({"error": str(e)}), 500
+
 
 
 @app.route("/api/usuarios/emprestimos/nome/<string:nome>", methods=["GET"])

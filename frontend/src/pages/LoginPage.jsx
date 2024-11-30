@@ -55,10 +55,10 @@ function LoginPage() {
   };
 
   const handleLogout = () => {
-    // Limpar o localStorage e atualizar o estado de login
     localStorage.removeItem("user");
     setIsLoggedIn(false); // Atualizar o estado para indicar que não está mais logado
     navigate("/login"); // Redirecionar para a página de login
+    window.location.reload() // Atualiza a página, para que os campos de criar livro e criar empréstimos sumam da Navbar 
   };
 
   return (

@@ -15,8 +15,8 @@ E a estilização? Tem problema ser muito simples?
 pelo título. Ou seja, caso o usuário pesquise "Dom Quixote", deverá ser listado se existe ou não algum exemplar disponível ao empréstimo. Entretando, devo criar uma nova tabela
 no banco de dados para o exemplar do livro, com relacionamento com a tabela Livro?
 
-[ ] Quando o usuário sair, atualizar a página
-[ ] Quando criar empréstimo, aparecer somente os livros com exemplares disponíveis
-[ ] Mostrar somente os empréstimos do usuário logado, a não ser que seja adm
+[x] Quando o usuário sair, atualizar a página
+[x] Quando criar empréstimo, aparecer somente os livros com exemplares disponíveis
+[x] Mostrar somente os empréstimos do usuário logado, a não ser que seja adm
 [ ] Adicionar campo para quantos exemplares serão criados para cada livro criado
 [ ] Criar classes de controllers para rotas do backend

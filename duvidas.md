@@ -20,3 +20,4 @@ no banco de dados para o exemplar do livro, com relacionamento com a tabela Livr
 [x] Mostrar somente os empréstimos do usuário logado, a não ser que seja adm
 [x] Adicionar campo para quantos exemplares serão criados para cada livro criado
 [ ] Criar classes de controllers para rotas do backend
+

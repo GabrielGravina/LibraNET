@@ -105,44 +105,52 @@ class LivroController:
             db.session.rollback()
             return jsonify({"error": "Erro ao criar livro com exemplares.", "details": str(e)}), 500
         
-    @app.route('/api/livros', methods=['GET'])
-    def get_livros_disponiveis():
-        try:
-            # Fazer um join entre Livro e Biblioteca para obter os dados necessários
-            livros = db.session.query(
-                Livro,
-                Biblioteca.nome.label("biblioteca_nome")
-            ).join(
-                Biblioteca, Livro.biblioteca_id == Biblioteca.id
-            ).all()
+@app.route('/api/livros', methods=['GET'])
+def get_livros_disponiveis():
+    try:
+        # Fazer um join entre Livro, Biblioteca e Prateleira para obter os dados necessários
+        livros = db.session.query(
+            Livro,
+            Biblioteca.nome.label("biblioteca_nome"),
+            Prateleira.codigo.label("prateleira_codigo"),
+            Prateleira.localizacao.label("prateleira_localizacao")
+        ).join(
+            Biblioteca, Livro.biblioteca_id == Biblioteca.id
+        ).join(
+            Prateleira, Livro.prateleira_id == Prateleira.id
+        ).all()
 
-            resultado = []
+        resultado = []
 
-            for livro, biblioteca_nome in livros:
-                # Contar exemplares disponíveis
-                exemplares_disponiveis = db.session.query(Exemplar).filter_by(
-                    livro_id=livro.id, disponivel=True
-                ).count()
+        for livro, biblioteca_nome, prateleira_codigo, prateleira_localizacao in livros:
+            # Contar exemplares disponíveis
+            exemplares_disponiveis = db.session.query(Exemplar).filter_by(
+                livro_id=livro.id, disponivel=True
+            ).count()
 
-                # O livro é considerado disponível se houver ao menos um exemplar disponível
-                
-                disponivel = exemplares_disponiveis > 0
-                if disponivel > 0:
-                    resultado.append({
-                        "id": livro.id,
-                        "titulo": livro.titulo,
-                        "autor": livro.autor,
-                        "categoria": livro.categoria,
-                        "ano_publicado": livro.ano_publicado,
-                        "biblioteca_id": livro.biblioteca_id,
-                        "biblioteca_nome": biblioteca_nome,  # Nome da biblioteca incluído
-                        "quantidade_exemplares": exemplares_disponiveis,
-                        "disponivel": disponivel
-                    })
+            # O livro é considerado disponível se houver ao menos um exemplar disponível
+            disponivel = exemplares_disponiveis > 0
+            if disponivel:
+                resultado.append({
+                    "id": livro.id,
+                    "titulo": livro.titulo,
+                    "autor": livro.autor,
+                    "categoria": livro.categoria,
+                    "ano_publicado": livro.ano_publicado,
+                    "biblioteca_id": livro.biblioteca_id,
+                    "biblioteca_nome": biblioteca_nome,  # Nome da biblioteca incluído
+                    "quantidade_exemplares": exemplares_disponiveis,
+                    "disponivel": disponivel,
+                    "prateleira": {
+                        "codigo": prateleira_codigo,
+                        "localizacao": prateleira_localizacao
+                    }
+                })
 
-            return jsonify(resultado), 200
-        except Exception as e:
-            return jsonify({"error": "Erro ao obter livros.", "details": str(e)}), 500
+        return jsonify(resultado), 200
+    except Exception as e:
+        return jsonify({"error": "Erro ao obter livros.", "details": str(e)}), 500
+
 
     @app.route('/api/livros/<int:livro_id>', methods=['GET'])
     def get_livro(livro_id):

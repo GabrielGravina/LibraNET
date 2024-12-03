@@ -221,6 +221,9 @@ export default function BookPage() {
 									<strong>Exemplares:</strong> {result.quantidade_exemplares}
 								</p>
 								<p>
+									<strong>Prateleira:</strong> {result.prateleira.codigo}
+								</p>
+								<p>
 									<strong>Biblioteca:</strong> {result.biblioteca_nome}
 								</p>{" "}
 								{/* Exibe o nome da biblioteca */}

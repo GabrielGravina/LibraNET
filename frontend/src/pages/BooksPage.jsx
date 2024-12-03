@@ -215,32 +215,32 @@ export default function BookPage() {
 						>
 							{result && (
 								<>
-									<p className="font-semibold text-2xl justify-self-center">
-										<strong>Título:</strong> {result.titulo}
+									<p className="font-bold text-2xl justify-self-center self-center mb-1">
+										{result.titulo}
 									</p>
-									<p className="font-semibold text-lg justify-self-center">
-										<strong>Autor:</strong> {result.autor}
+									<p className="font-semibold text-lg mb-1 justify-self-center">
+										Autor: {result.autor}
 									</p>
-									<p className="text-lg justify-self-center">
-										<strong>Categoria:</strong> {result.categoria}
+									<p className="text-sm text-gray-500 justify-self-center">
+										Categoria: <span className="font-semibold">{result.categoria}</span>
 									</p>
-									<p className="text-lg justify-self-center">
-										<strong>Ano de publicação:</strong> {result.ano_publicado}
+									<p className="text-sm text-gray-500 justify-self-center">
+										Ano de publicação: {result.ano_publicado}
 									</p>
-									<p className="text-lg justify-self-center">
-										<strong>Disponível:</strong> {result.disponivel ? "Sim" : "Não"}
+									<p className="text-sm text-gray-500 justify-self-center">
+										Disponível: {result.disponivel ? "Sim" : "Não"}
 									</p>
-									<p className="text-lg justify-self-center">
-										<strong>Exemplares:</strong> {result.quantidade_exemplares}
+									<p className="text-sm my-1 text-gray-500 justify-self-center">
+										Exemplares: {result.quantidade_exemplares}
 									</p>
 									<img
 										className="justify-self-center"
 										src={result.imagem_capa}
 										alt={`Capa do livro ${result.titulo}`}
 									/>
-									<p className="font-semibold text-lg justify-self-center">
+									{/* <p className="font-semibold text-lg justify-self-center">
 										<strong>Biblioteca:</strong> {result.biblioteca_nome}
-									</p>
+									</p> */}
 									<div className="mt-2 flex justify-center items-center">
 										{isAdmin && (
 											<MotionLink

@@ -13,6 +13,7 @@ import { FaAddressBook } from "react-icons/fa";
 function Navbar() {
 	// Estado para verificar se o usuário é admin
 	const [isAdmin, setIsAdmin] = useState(false);
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
 
 	// Verifica se o usuário é admin no localStorage ao carregar a navbar
 	useEffect(() => {
@@ -20,6 +21,8 @@ function Navbar() {
 		if (user) {
 			const userData = JSON.parse(user);
 			setIsAdmin(userData.admin); // Atualiza o estado com o valor de isAdmin
+			setIsLoggedIn(userData.cpf)
+			console.log(userData)
 		}
 	}, []);
 
@@ -47,13 +50,15 @@ function Navbar() {
 						Buscar Livros
 					</Link>
 				</li>
-				{/* Menu Buscar Empréstimos */}
-				<li className="px-4 py-2 hover:opacity-80">
-					<Link to={`/emprestimos`} className="font-semibold text-lg flex items-center space-x-2">
-						<FaSearch size={20} />
-						<span>Buscar Empréstimos</span>
-					</Link>
-				</li>
+				{isLoggedIn && (	
+					<li className="px-4 py-2 hover:opacity-80">
+						<Link to={`/emprestimos`} className="font-semibold text-lg flex items-center space-x-2">
+							<FaSearch size={20} />
+							<span>Buscar Empréstimos</span>
+						</Link>
+					</li>
+				)}
+				
 
 				{/* Exibe os menus de criação apenas para admins */}
 				{isAdmin && (

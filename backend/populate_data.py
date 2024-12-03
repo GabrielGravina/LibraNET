@@ -65,8 +65,6 @@ def populate_data(db):
         Emprestimo(livro_id=livros[0].id, exemplar_id=exemplares[0].id, usuario_id=usuarios[0].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=-15), devolvido=False),
         Emprestimo(livro_id=livros[1].id, exemplar_id=exemplares[1].id, usuario_id=usuarios[1].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=5), devolvido=False),
         Emprestimo(livro_id=livros[2].id, exemplar_id=exemplares[2].id, usuario_id=usuarios[2].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=8), devolvido=False),
-        Emprestimo(livro_id=livros[3].id, exemplar_id=exemplares[3].id, usuario_id=usuarios[3].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=10), devolvido=False),
-        Emprestimo(livro_id=livros[4].id, exemplar_id=exemplares[4].id, usuario_id=usuarios[4].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=15), devolvido=False),
     ]
     for emprestimo in emprestimos:
         exemplar = Exemplar.query.get(emprestimo.exemplar_id)

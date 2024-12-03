@@ -1,77 +1,101 @@
+import requests
 from models import Biblioteca, Livro, Usuario, Emprestimo, Prateleira, Exemplar
 from datetime import datetime, timedelta
 
+def fetch_books_from_openlibrary(count=40):
+    """
+    Busca livros da OpenLibrary API.
+    """
+    url = "https://openlibrary.org/search.json"
+    query = "fiction"  # Palavra-chave para buscar livros (pode ser alterada conforme necessário)
+    params = {"q": query, "limit": count}
+
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        books = data.get('docs', [])
+        return [
+            {
+                "titulo": book.get("title", "Título Desconhecido"),
+                "autor": ", ".join(book.get("author_name", ["Autor Desconhecido"])),
+                "ano_publicado": str(book.get("first_publish_year", "Ano Desconhecido")),
+                "imagem_capa": f"https://covers.openlibrary.org/b/id/{book.get('cover_i')}-L.jpg" if book.get("cover_i") else None,
+            }
+            for book in books
+        ]
+    else:
+        print("Erro ao buscar livros da API OpenLibrary.")
+        return []
+
 def populate_data(db):
-    # Limpa as tabelas
+    # Limpa as tabelas relacionadas
     db.session.query(Emprestimo).delete()
     db.session.query(Exemplar).delete()
     db.session.query(Livro).delete()
     db.session.query(Usuario).delete()
     db.session.query(Prateleira).delete()
     db.session.query(Biblioteca).delete()
-    
+
     # Criar bibliotecas
     biblioteca1 = Biblioteca(nome="Biblioteca Central", endereco="Rua A, 123")
     biblioteca2 = Biblioteca(nome="Biblioteca Secundária", endereco="Rua B, 456")
     biblioteca3 = Biblioteca(nome="Biblioteca Plaza", endereco="Rua C, 789")
     db.session.add_all([biblioteca1, biblioteca2, biblioteca3])
-    db.session.commit()  # Commit após adicionar bibliotecas para gerar os IDs
+    db.session.commit()
 
-    # Criar prateleiras associadas às bibliotecas
+    # Criar prateleiras
     prateleira1 = Prateleira(codigo="A1", localizacao="Primeiro andar - Setor A", biblioteca_id=biblioteca1.id)
     prateleira2 = Prateleira(codigo="B2", localizacao="Segundo andar - Setor B", biblioteca_id=biblioteca2.id)
     prateleira3 = Prateleira(codigo="C3", localizacao="Terceiro andar - Setor C", biblioteca_id=biblioteca3.id)
     db.session.add_all([prateleira1, prateleira2, prateleira3])
-    db.session.commit()  # Commit após adicionar prateleiras para gerar os IDs
+    db.session.commit()
 
-    # Criar usuários com Alice como administradora
+    # Criar usuários
     usuarios = [
-        Usuario(nome="Alice", cpf="12345678901", senha='123', admin=True),  # Alice definida como admin
+        Usuario(nome="Alice", cpf="12345678901", senha='123', admin=True),
         Usuario(nome="Bob", senha="1234", cpf="23456789012"),
         Usuario(nome="Carol", senha="13", cpf="34567890123"),
         Usuario(nome="Daniel", senha="1113", cpf="45678901234"),
         Usuario(nome="Eva", senha="adga23", cpf="56789012345")
     ]
     db.session.add_all(usuarios)
-    db.session.commit()  # Commit após adicionar usuários para gerar os IDs
+    db.session.commit()
 
-    # Criar livros associados a prateleiras específicas
-    livros = [
-        Livro(titulo="Livro de Teste 1", autor="Autor 1", prateleira_id=prateleira1.id, biblioteca_id=biblioteca1.id, categoria="Fantasia", ano_publicado="1998"),
-        Livro(titulo="Livro de Teste 2", autor="Autor 2", prateleira_id=prateleira2.id, biblioteca_id=biblioteca2.id, categoria="Ação", ano_publicado="2009"),
-        Livro(titulo="Game of Thrones", autor="G. R. R. Martin", prateleira_id=prateleira2.id, biblioteca_id=biblioteca2.id, categoria="Ação", ano_publicado="2009"),
-        Livro(titulo="Livro de Teste 4", autor="Autor 3", prateleira_id=prateleira3.id, biblioteca_id=biblioteca3.id, categoria="Romance", ano_publicado="2015"),
-        Livro(titulo="Livro de Teste 5", autor="Autor 4", prateleira_id=prateleira1.id, biblioteca_id=biblioteca1.id, categoria="Drama", ano_publicado="2020")
-    ]
+    # Buscar livros da OpenLibrary API
+    livros_da_api = fetch_books_from_openlibrary(count=40)
+
+    # Criar objetos de Livro e associar a bibliotecas aleatórias
+    livros = []
+    for i, livro_data in enumerate(livros_da_api):
+        biblioteca_id = [biblioteca1.id, biblioteca2.id, biblioteca3.id][i % 3]  # Distribuir entre as bibliotecas
+        livro = Livro(
+            titulo=livro_data["titulo"],
+            autor=livro_data["autor"],
+            categoria="Diversos",  # Pode ajustar para refletir categorias reais
+            ano_publicado=livro_data["ano_publicado"],
+            biblioteca_id=biblioteca_id,
+            imagem_capa=livro_data["imagem_capa"],
+            disponivel=True  # Inicialmente marcados como disponíveis
+        )
+        livros.append(livro)
     db.session.add_all(livros)
-    db.session.commit()  # Commit após adicionar livros para gerar os IDs
+    db.session.commit()
 
-    # Criar exemplares associados aos livros
+    # Criar exemplares
     exemplares = [
-        Exemplar(livro_id=livros[0].id, codigo_inventario="123456", disponivel=True, condicao="Bom", biblioteca_id=biblioteca1.id),
-        Exemplar(livro_id=livros[1].id, codigo_inventario="789101", disponivel=True, condicao="Bom", biblioteca_id=biblioteca2.id),
-        Exemplar(livro_id=livros[2].id, codigo_inventario="112233", disponivel=True, condicao="Bom", biblioteca_id=biblioteca2.id),
-        Exemplar(livro_id=livros[3].id, codigo_inventario="445566", disponivel=True, condicao="Bom", biblioteca_id=biblioteca3.id),
-        Exemplar(livro_id=livros[4].id, codigo_inventario="778899", disponivel=True, condicao="Bom", biblioteca_id=biblioteca1.id)
+        Exemplar(livro_id=livro.id, codigo_inventario=f"{livro.id}-{i}", disponivel=True, condicao="Bom", biblioteca_id=livro.biblioteca_id)
+        for i, livro in enumerate(livros)
     ]
-
-    for exemplar in exemplares:
-        print(exemplar.livro_id)
     db.session.add_all(exemplares)
-    db.session.commit()  # Commit para salvar os exemplares no banco de dados
+    db.session.commit()
 
-    # Criar empréstimos
+    # Criar empréstimos de exemplo
     emprestimos = [
-        Emprestimo(livro_id=livros[0].id, exemplar_id=exemplares[0].id, usuario_id=usuarios[0].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=-15), devolvido=False),
-        Emprestimo(livro_id=livros[1].id, exemplar_id=exemplares[1].id, usuario_id=usuarios[1].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=5), devolvido=False),
-        Emprestimo(livro_id=livros[2].id, exemplar_id=exemplares[2].id, usuario_id=usuarios[2].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=8), devolvido=False),
-        Emprestimo(livro_id=livros[3].id, exemplar_id=exemplares[3].id, usuario_id=usuarios[3].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=10), devolvido=False),
-        Emprestimo(livro_id=livros[4].id, exemplar_id=exemplares[4].id, usuario_id=usuarios[4].id, data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=15), devolvido=False),
+        Emprestimo(livro_id=livros[i].id, exemplar_id=exemplares[i].id, usuario_id=usuarios[i % len(usuarios)].id, 
+                   data_emprestimo=datetime.utcnow(), data_devolucao=datetime.utcnow() + timedelta(days=(i + 5)), devolvido=False)
+        for i in range(len(livros[:5]))  # Somente nos primeiros 5 livros
     ]
-    for emprestimo in emprestimos:
-        exemplar = Exemplar.query.get(emprestimo.exemplar_id)
-        exemplar.disponivel = False  # Marca o exemplar como indisponível
     db.session.add_all(emprestimos)
-    db.session.commit()  # Commit após adicionar empréstimos
+    db.session.commit()
 
     print("Dados de teste populados com sucesso.")

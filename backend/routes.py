@@ -2,7 +2,7 @@ from app import app, db
 from flask import request, jsonify
 from models import Biblioteca, Livro, Usuario, Emprestimo, Multa, Prateleira, Exemplar
 from datetime import datetime, timedelta
-
+import requests
 
 
 # CRUD para Bibliotecas
@@ -41,6 +41,7 @@ import uuid
 
 class LivroController:
     @staticmethod
+    
     @app.route('/api/livros', methods=['POST'])
     def criar_livro():
         try:
@@ -48,42 +49,60 @@ class LivroController:
 
             titulo = data.get("titulo")
             autor = data.get("autor")
-            prateleira_id = data.get("prateleira_id")
             categoria = data.get("categoria")
             ano_publicado = data.get("ano_publicado")
             biblioteca_id = data.get("biblioteca_id")
-            disponivel = data.get("disponivel", True)  # Padrão: disponível
+            disponivel = data.get("disponivel", True)
             quantidade_exemplares = int(data.get("quantidade_exemplares", 0))
 
-            # Verificar campos obrigatórios
-            if not categoria:
-                return jsonify({"error": "Categoria é obrigatória"}), 400
+            if not titulo or not categoria:
+                return jsonify({"error": "Título e Categoria são obrigatórios"}), 400
 
             biblioteca = db.session.query(Biblioteca).filter_by(id=biblioteca_id).first()
             if not biblioteca:
                 return jsonify({"error": "Biblioteca não encontrada"}), 404
 
-            prateleira = db.session.query(Prateleira).filter_by(id=prateleira_id).first()
-            if not prateleira:
-                return jsonify({"error": "Prateleira não encontrada."}), 404
+            # Busca da imagem de capa
+            imagem_capa = None
+            try:
+                response = requests.get(
+                    "https://openlibrary.org/search.json",
+                    params={"title": titulo}
+                )
+                if response.status_code == 200:
+                    resultados = response.json().get("docs", [])
+                    if resultados:
+                        for resultado in resultados:
+                            cover_key = resultado.get("cover_edition_key")
+                            if cover_key:
+                                imagem_capa = f"https://covers.openlibrary.org/b/olid/{cover_key}-L.jpg"
+                                break
+                    if not imagem_capa:
+                        print("Nenhuma capa específica encontrada, utilizando fallback genérico.")
+                else:
+                    print(f"Erro na API OpenLibrary: {response.status_code}")
+            except Exception as e:
+                print(f"Erro ao buscar imagem de capa: {e}")
 
-            # Criar o livro
+            # Fallback para uma imagem genérica, se nenhuma capa foi encontrada
+            if not imagem_capa:
+                imagem_capa = "https://via.placeholder.com/150?text=Imagem+Indisponível"
+
+            # Criação do livro
             novo_livro = Livro(
                 titulo=titulo,
                 autor=autor,
-                prateleira_id=prateleira_id,
                 categoria=categoria,
                 ano_publicado=ano_publicado,
                 biblioteca_id=biblioteca_id,
-                disponivel=disponivel
+                disponivel=disponivel,
+                imagem_capa=imagem_capa
             )
             db.session.add(novo_livro)
-            db.session.flush()  # Garante que o ID do livro seja gerado
+            db.session.flush()
 
-            # Criar exemplares, se quantidade especificada for maior que zero
             exemplares = []
             for i in range(quantidade_exemplares):
-                # Gerar código único para o exemplar
                 codigo_inventario = f"{novo_livro.id}-{uuid.uuid4().hex[:8]}-{i + 1}"
                 novo_exemplar = Exemplar(
                     livro_id=novo_livro.id,
@@ -95,62 +114,60 @@ class LivroController:
                 exemplares.append(novo_exemplar)
                 db.session.add(novo_exemplar)
 
-            # Confirmar as mudanças no banco
             db.session.commit()
+            print(f"Livro criado com sucesso: {novo_livro.titulo}, Capa: {novo_livro.imagem_capa}")
             return jsonify({
                 "livro": novo_livro.to_json(),
                 "exemplares_criados": len(exemplares)
             }), 201
         except Exception as e:
             db.session.rollback()
+            print(f"Erro ao criar livro: {e}")
             return jsonify({"error": "Erro ao criar livro com exemplares.", "details": str(e)}), 500
+
+
+
+            
+    @app.route('/api/livros', methods=['GET'])
+    def get_livros_disponiveis():
+        try:
+            # Fazer um join entre Livro e Biblioteca para obter os dados necessários
+            livros = db.session.query(
+                Livro,
+                Biblioteca.nome.label("biblioteca_nome")
+            ).join(
+                Biblioteca, Livro.biblioteca_id == Biblioteca.id
+            ).all()
+
+            resultado = []
+
+            for livro, biblioteca_nome in livros:
+                # Contar exemplares disponíveis
+                exemplares_disponiveis = db.session.query(Exemplar).filter_by(
+                    livro_id=livro.id, disponivel=True
+                ).count()
+
+                # O livro é considerado disponível se houver ao menos um exemplar disponível
+                disponivel = exemplares_disponiveis > 0
+
+                if disponivel:
+                    resultado.append({
+                        "id": livro.id,
+                        "titulo": livro.titulo,
+                        "autor": livro.autor,
+                        "categoria": livro.categoria,
+                        "ano_publicado": livro.ano_publicado,
+                        "biblioteca_id": livro.biblioteca_id,
+                        "biblioteca_nome": biblioteca_nome,  # Nome da biblioteca incluído
+                        "quantidade_exemplares": exemplares_disponiveis,
+                        "disponivel": disponivel,
+                        "imagem_capa": livro.imagem_capa  # Certifique-se de que este campo existe no modelo Livro
+                    })
+
+            return jsonify(resultado), 200
+        except Exception as e:
+            return jsonify({"error": "Erro ao obter livros.", "details": str(e)}), 500
         
-@app.route('/api/livros', methods=['GET'])
-def get_livros_disponiveis():
-    try:
-        # Fazer um join entre Livro, Biblioteca e Prateleira para obter os dados necessários
-        livros = db.session.query(
-            Livro,
-            Biblioteca.nome.label("biblioteca_nome"),
-            Prateleira.codigo.label("prateleira_codigo"),
-            Prateleira.localizacao.label("prateleira_localizacao")
-        ).join(
-            Biblioteca, Livro.biblioteca_id == Biblioteca.id
-        ).join(
-            Prateleira, Livro.prateleira_id == Prateleira.id
-        ).all()
-
-        resultado = []
-
-        for livro, biblioteca_nome, prateleira_codigo, prateleira_localizacao in livros:
-            # Contar exemplares disponíveis
-            exemplares_disponiveis = db.session.query(Exemplar).filter_by(
-                livro_id=livro.id, disponivel=True
-            ).count()
-
-            # O livro é considerado disponível se houver ao menos um exemplar disponível
-            disponivel = exemplares_disponiveis > 0
-            if disponivel:
-                resultado.append({
-                    "id": livro.id,
-                    "titulo": livro.titulo,
-                    "autor": livro.autor,
-                    "categoria": livro.categoria,
-                    "ano_publicado": livro.ano_publicado,
-                    "biblioteca_id": livro.biblioteca_id,
-                    "biblioteca_nome": biblioteca_nome,  # Nome da biblioteca incluído
-                    "quantidade_exemplares": exemplares_disponiveis,
-                    "disponivel": disponivel,
-                    "prateleira": {
-                        "codigo": prateleira_codigo,
-                        "localizacao": prateleira_localizacao
-                    }
-                })
-
-        return jsonify(resultado), 200
-    except Exception as e:
-        return jsonify({"error": "Erro ao obter livros.", "details": str(e)}), 500
-
 
     @app.route('/api/livros/<int:livro_id>', methods=['GET'])
     def get_livro(livro_id):
@@ -184,11 +201,7 @@ def get_livros_disponiveis():
                 livro.titulo = data["titulo"]
             if "autor" in data:
                 livro.autor = data["autor"]
-            if "prateleira_id" in data:
-                prateleira = db.session.query(Prateleira).filter_by(id=data["prateleira_id"]).first()
-                if not prateleira:
-                    return jsonify({"error": "Prateleira não encontrada"}), 404
-                livro.prateleira_id = data["prateleira_id"]
+
             if "categoria" in data:
                 livro.categoria = data["categoria"]
             if "ano_publicado" in data:
@@ -210,6 +223,53 @@ def get_livros_disponiveis():
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": "Erro ao atualizar o livro.", "details": str(e)}), 500
+
+
+@app.route('/api/popular-livros', methods=['POST'])
+def popular_livros_openlibrary():
+    try:
+        # Parâmetro de busca enviado pelo cliente
+        query = request.args.get('query', 'programming')  # Valor padrão: "programming"
+        api_url = f'https://openlibrary.org/search.json?q={query}'
+
+        response = requests.get(api_url)
+        if response.status_code != 200:
+            return jsonify({"error": "Erro ao buscar livros na API"}), 500
+
+        livros_data = response.json().get("docs", [])
+
+        for item in livros_data[:10]:  # Limita a 10 resultados para evitar sobrecarga
+            titulo = item.get("title", "Título desconhecido")
+            autor = ", ".join(item.get("author_name", ["Autor desconhecido"]))
+            ano_publicado = item.get("first_publish_year", "Ano desconhecido")
+            categoria = "Categoria não especificada"  # A API não fornece categorias diretamente
+            openlibrary_id = item.get("cover_edition_key", None)
+            
+            # Gerar URL da capa do livro
+            imagem_capa = f"https://covers.openlibrary.org/b/olid/{openlibrary_id}-M.jpg" if openlibrary_id else ""
+
+            # Criar um novo livro
+            novo_livro = Livro(
+                titulo=titulo,
+                autor=autor,
+                categoria=categoria,
+                ano_publicado=ano_publicado,
+                disponivel=True,
+                biblioteca_id=None  # Ajuste conforme necessário
+            )
+            db.session.add(novo_livro)
+            db.session.flush()
+
+            # Adicionar a URL da imagem ao livro
+            if imagem_capa:
+                novo_livro.imagem_capa = imagem_capa  # Adicione um campo imagem_capa ao modelo Livro
+
+        db.session.commit()
+        return jsonify({"message": "Livros adicionados com sucesso!"}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": "Erro ao popular livros", "details": str(e)}), 500
 
 #----------------------------------
 class UsuarioController:

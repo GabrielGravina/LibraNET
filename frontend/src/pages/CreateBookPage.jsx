@@ -21,7 +21,7 @@ function CreateBookPage() {
     setErrorMessage("");
 
     // Verificando se todos os campos obrigatórios estão preenchidos
-    if (!titulo || !autor || !anoPublicacao || !categoria || !prateleiraId || !bibliotecaId) {
+    if (!titulo || !autor || !anoPublicacao || !categoria || !bibliotecaId) {
       setErrorMessage("Todos os campos são obrigatórios.");
       setIsSubmitting(false);
       return;
@@ -53,7 +53,6 @@ function CreateBookPage() {
       autor,
       ano_publicacao: anoPublicacao,
       categoria,
-      prateleira_id: prateleiraId,  
       biblioteca_id: bibliotecaId,  
       quantidade_exemplares: quantidadeExemplares
     };
@@ -160,17 +159,8 @@ function CreateBookPage() {
 
                 {/* Campo para prateleira_id */}
                 <div className="mb-4">
-                <label htmlFor="prateleiraId" className="block text-lg font-medium mb-2">
-                    Prateleira ID
-                </label>
-                <input
-                    type="number"
-                    id="prateleiraId"
-                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
-                    value={prateleiraId}
-                    onChange={(e) => setPrateleiraId(e.target.value)}
-                    required
-                />
+                
+               
                 </div>
 
                 {/* Campo para biblioteca_id */}

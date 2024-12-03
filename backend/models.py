@@ -1,5 +1,6 @@
 from app import db
 from datetime import datetime
+import requests
 
 
 class Biblioteca(db.Model):
@@ -19,35 +20,29 @@ class Livro(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     titulo = db.Column(db.String(200), nullable=False)
     autor = db.Column(db.String(100), nullable=False)
-
-    # Relacionamento com a tabela Prateleira
-    prateleira_id = db.Column(db.Integer, db.ForeignKey('prateleira.id'), nullable=False)
-    prateleira = db.relationship('Prateleira', backref='livros', lazy=True)
-
     categoria = db.Column(db.String(50), nullable=False)
     ano_publicado = db.Column(db.String(10))
     biblioteca_id = db.Column(db.Integer, db.ForeignKey('biblioteca.id'), nullable=False)
+    disponivel = db.Column(db.Boolean)
+    imagem_capa = db.Column(db.String(300))  # URL da imagem da capa
 
-    # Relacionamento com a tabela Exemplar
+
     exemplares = db.relationship('Exemplar', backref='livro', lazy=True)
 
     disponivel = db.Column(db.Boolean) # [ ] Isso fere a 2FN, já que disponível acaba dependendo da tabela exemplares, e não do livro em si.
-
     def to_json(self):
         return {
             "id": self.id,
             "titulo": self.titulo,
             "autor": self.autor,
-            "prateleira": {
-                "id": self.prateleira.id,
-                "codigo": self.prateleira.codigo,
-                "localizacao": self.prateleira.localizacao
-            },
             "categoria": self.categoria,
             "ano_publicado": self.ano_publicado,
             "biblioteca_id": self.biblioteca_id,
-            "exemplares": [exemplar.to_json() for exemplar in self.exemplares]  # Lista de exemplares associados
+            "disponivel": self.disponivel,
+            "imagem_capa": self.imagem_capa
         }
+
+
 
 
 class Exemplar(db.Model):

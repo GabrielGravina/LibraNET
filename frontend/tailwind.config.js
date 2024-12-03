@@ -17,6 +17,9 @@ export default {
 			backgroundImage: {
 				'gradient-conic': 'conic-gradient(from var(--angle), #ff4545, #00ff99, #006aff, #ff0095, #ff4545)',
 			 },
+			fontFamily: {
+				poppins: ['Poppins', 'sans-serif'], // Adicione a fonte aqui
+			  },
 		},
 	},
 	plugins: [],

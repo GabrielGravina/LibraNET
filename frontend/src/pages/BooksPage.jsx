@@ -106,15 +106,21 @@ export default function BookPage() {
 	return (
 		<div className="flex-auto w-full m-0 bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
 			<Navbar />
-			<section className="w-[100vh] m-auto mb-0 text-black min-h-[92vh]">
-				<h3 className="text-3xl font-bold p-2 py-5 justify-self-center">Listando Livros:</h3>
-				<input
-					className="w-full p-2 mb-4 border border-gray-300 rounded-md shadow-sm focus:ring text-white focus:ring-blue-500"
-					type="text"
-					placeholder="Pesquisar por nome do livro"
-					value={searchTerm}
-					onChange={handleSearch}
+			<section className="flex flex-col justify-center w-[90vW] m-auto mb-0 text-black min-h-[92vh]">
+				<div className="flex flex-col self-center">
+					<h3 className="text-3xl self-center font-bold p-2 py-5 justify-self-center">Listando Livros:</h3>
+					<input
+						className="w-full  p-2 mb-4 border self-center border-gray-300 rounded-md shadow-sm focus:ring text-white focus:ring-blue-500"
+						type="text"
+						placeholder="Pesquisar por nome do livro"
+						value={searchTerm}
+						onChange={handleSearch}
 				/>
+
+
+
+				</div>
+				
 
 				<div className="flex-auto m-auto">
 					<div className="flex justify-center align-top"> {/* Flex para colocar as seções lado a lado */}
@@ -193,56 +199,78 @@ export default function BookPage() {
 						
 					</div>
 				</div>
+					
+				<div className="w-full justify-self-center">
+    		
 
-				<div className="max-w-[80vw] justify-self-center">
-					<h2 className="text-2xl font-bold mb-0 justify-self-center">Lista de livros:</h2>
-					<ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full mx-auto p-12 ">
-						{filteredResults.map((result) => (
-							<li
-								key={result.id}
-								className="mt-4 p-4 bg-gray-100 rounded-md shadow text-gray-600 h-fit min-w-fit"
-							>
-								<p>
-									<strong>Título:</strong> {result.titulo}
-								</p>
-								<p>
-									<strong>Autor:</strong> {result.autor}
-								</p>
-								<p>
-									<strong>Categoria:</strong> {result.categoria}
-								</p>
-								<p>
-									<strong>Ano de publicação:</strong> {result.ano_publicado}
-								</p>
-								<p>
-									<strong>Disponível:</strong> {result.disponivel ? "Sim" : "Não"}
-								</p>
-								<p>
-									<strong>Exemplares:</strong> {result.quantidade_exemplares}
-								</p>
-								<p>
-									<strong>Prateleira:</strong> {result.prateleira.codigo}
-								</p>
-								<p>
-									<strong>Biblioteca:</strong> {result.biblioteca_nome}
-								</p>{" "}
-								{/* Exibe o nome da biblioteca */}
-								<div className="mt-2 flex justify-center items-center">
-									{console.log("-------isAdmin---------", isAdmin)}
-									{isAdmin && (
-										<MotionLink
-											whileHover={{ scale: 1.1 }}
-											to={`/livros/${result.id}`}
-											className="button px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition after:content-[a]"
-										>
-											Editar Livro
-										</MotionLink>
-									)}
-								</div>
-							</li>
-						))}
-					</ul>
-				</div>
+			{/* Verificar se há resultados */}
+			{filteredResults.length > 0 ? (
+				<>
+				<h2 className="text-2xl font-bold mb-0 justify-self-center">Lista de livros:</h2>
+				<ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full mx-auto p-6">
+					{filteredResults.map((result) => (
+						<li
+							key={result.id}
+							className="mt-4 p-4 bg-gray-100 rounded-md shadow text-gray-600 h-fit min-w-fit"
+						>
+							{result && (
+								<>
+									<p className="font-bold text-2xl justify-self-center self-center mb-1">
+										{result.titulo}
+									</p>
+									<p className="font-semibold text-lg mb-1 justify-self-center">
+										Autor: {result.autor}
+									</p>
+									<p className="text-sm text-gray-500 justify-self-center">
+										Categoria: <span className="font-semibold">{result.categoria}</span>
+									</p>
+									<p className="text-sm text-gray-500 justify-self-center">
+										Ano de publicação: {result.ano_publicado}
+									</p>
+									<p className="text-sm text-gray-500 justify-self-center">
+										Disponível: {result.disponivel ? "Sim" : "Não"}
+									</p>
+									<p className="text-sm my-1 text-gray-500 justify-self-center">
+										Exemplares: {result.quantidade_exemplares}
+									</p>
+									<img
+										className="justify-self-center"
+										src={result.imagem_capa}
+										alt={`Capa do livro ${result.titulo}`}
+									/>
+									{/* <p className="font-semibold text-lg justify-self-center">
+										<strong>Biblioteca:</strong> {result.biblioteca_nome}
+									</p> */}
+									<div className="mt-2 flex justify-center items-center">
+										{isAdmin && (
+											<MotionLink
+												whileHover={{ scale: 1.1 }}
+												to={`/livros/${result.id}`}
+												className="button px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+											>
+												Editar Livro
+											</MotionLink>
+										)}
+									</div>
+								</>
+							)}
+						</li>
+					))}
+				</ul>
+				
+				
+				
+				
+				</>
+			) : (
+				<h1 className="text-center text-2xl font-bold text-gray-600 mt-12">
+					Livro não encontrado
+				</h1>
+			)}
+		</div>
+
+
+
 				<div className="p-4"></div>
 			</section>
 		</div>

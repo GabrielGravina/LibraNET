@@ -504,18 +504,25 @@ def update_emprestimo(id):
     emprestimo.data_devolucao = datetime.strptime(data["data_devolucao"], "%a, %d %b %Y %H:%M:%S %Z")
     emprestimo.devolvido = data.get("devolvido", emprestimo.devolvido)
 
+
     # Atualiza a multa se ela existir
     if emprestimo.multa:
         emprestimo.multa.valor = data["multa"]["valor"]  # Atualiza o valor da multa
         emprestimo.multa.data_pagamento = data["multa"].get("data_pagamento", emprestimo.multa.data_pagamento)
-    else:
-        # Se não existir, cria uma nova multa
-        nova_multa = Multa(
-            emprestimo_id=emprestimo.id,
-            valor=data["multa"]["valor"],
-            data_pagamento=data["multa"].get("data_pagamento")
-        )
-        db.session.add(nova_multa)
+    
+    if emprestimo.devolvido:
+        exemplar = Exemplar.query.get(emprestimo.exemplar_id)  # Assumindo que emprestimo.exemplar_id é a chave do exemplar emprestado
+        if exemplar:
+            exemplar.disponivel = True  # Marca o exemplar como disponível
+
+    # else:
+        # # Se não existir, cria uma nova multa
+        # nova_multa = Multa(
+        #     emprestimo_id=emprestimo.id,
+        #     valor=data["multa"]["valor"],
+        #     data_pagamento=data["multa"].get("data_pagamento")
+        # )
+        # db.session.add(nova_multa)
 
     # Salva as mudanças no banco de dados
     db.session.commit()

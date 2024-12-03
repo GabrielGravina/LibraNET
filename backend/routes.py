@@ -615,3 +615,38 @@ def get_prateleiras(biblioteca_id):
     prateleiras_json = [prateleira.to_json() for prateleira in prateleiras]
 
     return jsonify(prateleiras_json), 200
+
+
+# ------------- RELATÓRIOS ---------------
+@app.route('/api/relatorios', methods=['GET'])
+def gerar_relatorio():
+    try:
+        # Total de empréstimos por livro
+        livros_mais_emprestados = db.session.query(
+            Livro.titulo, db.func.count(Emprestimo.id).label('total_emprestimos')
+        ).join(Emprestimo, Emprestimo.livro_id == Livro.id).group_by(Livro.titulo).order_by(db.desc('total_emprestimos')).all()
+
+        # Total de empréstimos por categoria
+        categorias_mais_emprestadas = db.session.query(
+            Livro.categoria, db.func.count(Emprestimo.id).label('total_emprestimos')
+        ).join(Emprestimo, Emprestimo.livro_id == Livro.id).group_by(Livro.categoria).order_by(db.desc('total_emprestimos')).all()
+
+        # Porcentagem de livros danificados
+        total_exemplares = db.session.query(Exemplar).count()
+        exemplares_estragados = db.session.query(Exemplar).filter(Exemplar.condicao == 'Estragado').count()
+        porcentagem_danificados = (exemplares_estragados / total_exemplares * 100) if total_exemplares > 0 else 0
+
+        # Porcentagem de multas por empréstimo
+        total_emprestimos = db.session.query(Emprestimo).count()
+        total_multas = db.session.query(Multa).count()
+        porcentagem_multas = (total_multas / total_emprestimos * 100) if total_emprestimos > 0 else 0
+
+        # Retornar resultados como JSON
+        return jsonify({
+            "livros_mais_emprestados": [{"titulo": l[0], "total_emprestimos": l[1]} for l in livros_mais_emprestados],
+            "categorias_mais_emprestadas": [{"categoria": c[0], "total_emprestimos": c[1]} for c in categorias_mais_emprestadas],
+            "porcentagem_livros_danificados": porcentagem_danificados,
+            "porcentagem_multas": porcentagem_multas
+        }), 200
+    except Exception as e:
+        return jsonify({"error": "Erro ao gerar relatório.", "details": str(e)}), 500

@@ -211,11 +211,11 @@ export default function BookPage() {
 					{filteredResults.map((result) => (
 						<li
 							key={result.id}
-							className="mt-4 p-4 bg-gray-100 rounded-md shadow text-gray-600 h-fit min-w-fit"
+							className="mt-4 p-4 bg-gray-100 rounded-md shadow text-gray-600 h-fit  max-w-[18vw] max-h-[50vh]"
 						>
 							{result && (
 								<>
-									<p className="font-bold text-2xl justify-self-center self-center mb-1">
+									<p className="font-bold text-xl justify-self-center self-center mb-1">
 										{result.titulo}
 									</p>
 									<p className="font-semibold text-lg mb-1 justify-self-center">
@@ -234,7 +234,7 @@ export default function BookPage() {
 										Exemplares: {result.quantidade_exemplares}
 									</p>
 									<img
-										className="justify-self-center"
+										className="justify-self-center min-h-[25vh] max-h-[25vh]"
 										src={result.imagem_capa}
 										alt={`Capa do livro ${result.titulo}`}
 									/>

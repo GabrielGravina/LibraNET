@@ -5,27 +5,28 @@ import Navbar from "../components/Navbar";
 function CreateLoanPage() {
   const [livros, setLivros] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
+  const [exemplares, setExemplares] = useState([]);
   const [livroId, setLivroId] = useState("");
+  const [exemplarId, setExemplarId] = useState("");
   const [usuarioId, setUsuarioId] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
 
-  // Carregar livros e usuários quando a página for carregada
+  // Carregar livros disponíveis e usuários
   useEffect(() => {
     const fetchLivros = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5000/api/livros");
+        const response = await fetch("http://127.0.0.1:5000/api/livros/disponiveis");
         if (response.ok) {
           const data = await response.json();
-          console.log("Livros carregados:", data);
           setLivros(data);
         } else {
-          console.log("Erro ao carregar livros.");
+          console.log("Erro ao carregar livros disponíveis.");
         }
       } catch (error) {
-        console.error("Erro ao fazer a requisição de livros:", error);
+        console.error("Erro ao buscar livros disponíveis:", error);
       }
     };
 
@@ -34,13 +35,12 @@ function CreateLoanPage() {
         const response = await fetch("http://127.0.0.1:5000/api/usuarios");
         if (response.ok) {
           const data = await response.json();
-          console.log("Usuários carregados:", data);
           setUsuarios(data);
         } else {
           console.log("Erro ao carregar usuários.");
         }
       } catch (error) {
-        console.error("Erro ao fazer a requisição de usuários:", error);
+        console.error("Erro ao buscar usuários:", error);
       }
     };
 
@@ -48,40 +48,48 @@ function CreateLoanPage() {
     fetchUsuarios();
   }, []);
 
+  // Carregar exemplares disponíveis para o livro selecionado
+  useEffect(() => {
+    const fetchExemplares = async () => {
+      if (!livroId) return;
+
+      try {
+        const response = await fetch(`http://127.0.0.1:5000/api/exemplares/${livroId}/disponiveis`);
+        if (response.ok) {
+          const data = await response.json();
+          setExemplares(data);
+        } else {
+          console.log("Erro ao carregar exemplares disponíveis.");
+        }
+      } catch (error) {
+        console.error("Erro ao buscar exemplares disponíveis:", error);
+      }
+    };
+
+    fetchExemplares();
+  }, [livroId]);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setIsSubmitting(true);
     setErrorMessage("");
 
-    console.log("Enviando empréstimo com livro_id:", livroId, "e usuario_id:", usuarioId);
-
     try {
-      // Verificando se os valores estão corretos
-      console.log("Tipo de livroId:", typeof livroId, "Tipo de usuarioId:", typeof usuarioId);
-      
-      // Convertendo o valor do livroId e usuarioId para números
-      const livroIdNumber = parseInt(livroId, 10);
-      const usuarioIdNumber = parseInt(usuarioId, 10);
-
-      console.log("Livro ID convertido para número:", livroIdNumber);
-      console.log("Usuário ID convertido para número:", usuarioIdNumber);
-
       const response = await fetch("http://127.0.0.1:5000/api/emprestimos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          livro_id: livroIdNumber,  // Passando o livroId como número
-          usuario_id: usuarioIdNumber,  // Passando o usuarioId como número
+          exemplar_id: parseInt(exemplarId, 10),
+          usuario_id: parseInt(usuarioId, 10),
         }),
       });
 
       if (response.ok) {
-        navigate("/emprestimos"); // Redireciona para a página de empréstimos após sucesso
+        navigate("/emprestimos"); // Redireciona após sucesso
       } else {
         const data = await response.json();
-        console.log("Erro ao criar empréstimo:", data);
         setErrorMessage(data.error || "Erro ao criar empréstimo.");
       }
     } catch (error) {
@@ -99,10 +107,7 @@ function CreateLoanPage() {
         <div className="max-w-[40vw] min-w-[20vw] mx-auto p-6 bg-white shadow-md rounded-lg text-black">
           <h1 className="text-2xl font-semibold mb-4">Criar Empréstimo</h1>
 
-          {/* Exibição de erros */}
-          {errorMessage && (
-            <div className="mb-4 text-red-500">{errorMessage}</div>
-          )}
+          {errorMessage && <div className="mb-4 text-red-500">{errorMessage}</div>}
 
           <form onSubmit={handleSubmit}>
             {/* Select para escolher livro */}
@@ -112,22 +117,46 @@ function CreateLoanPage() {
               </label>
               <select
                 id="livro"
-                className="w-full p-2 border border-gray-300 rounded-md text-white"
+                className="w-full p-2 border text-white border-gray-300 rounded-md"
                 value={livroId}
                 onChange={(e) => {
-                  console.log("Livro selecionado:", e.target.value); // Log para verificar o livro selecionado
                   setLivroId(e.target.value);
+                  setExemplarId(""); // Limpa a seleção de exemplar
                 }}
                 required
               >
                 <option value="">Selecione um livro</option>
                 {livros.map((livro) => (
                   <option key={livro.id} value={livro.id}>
-                    {livro.titulo}
+                    {livro.titulo} ({livro.quantidade_exemplares} disponíveis)
                   </option>
                 ))}
               </select>
             </div>
+
+            {/* Select para escolher exemplar */}
+            {livroId && exemplares.length > 0 && (
+              <div className="mb-4">
+                <label htmlFor="exemplar" className="block text-black text-lg font-medium mb-2">
+                  Selecione o Exemplar
+                </label>
+                <select
+                  id="exemplar"
+                  className="w-full p-2 border text-white border-gray-300 rounded-md text-black"
+                  value={exemplarId}
+                  onChange={(e) => setExemplarId(e.target.value)}
+                  required
+                >
+                  <option value="">Selecione um exemplar</option>
+                  {console.log(exemplares, "AQUIII")}
+                  {exemplares.map((exemplar) => (
+                    <option key={exemplar.id} value={exemplar.id}>
+                      Exemplar {exemplar.biblioteca}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Select para escolher usuário */}
             <div className="mb-4">
@@ -136,12 +165,9 @@ function CreateLoanPage() {
               </label>
               <select
                 id="usuario"
-                className="w-full p-2 border border-gray-300 rounded-md text-white"
+                className="w-full p-2 border text-white border-gray-300 rounded-md text-black"
                 value={usuarioId}
-                onChange={(e) => {
-                  console.log("Usuário selecionado:", e.target.value); // Log para verificar o usuário selecionado
-                  setUsuarioId(e.target.value);  // Armazenando o ID do usuário
-                }}
+                onChange={(e) => setUsuarioId(e.target.value)}
                 required
               >
                 <option value="">Selecione um usuário</option>
@@ -157,7 +183,7 @@ function CreateLoanPage() {
             <button
               type="submit"
               className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600 disabled:opacity-50"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !exemplarId || !usuarioId}
             >
               {isSubmitting ? "Criando..." : "Criar Empréstimo"}
             </button>

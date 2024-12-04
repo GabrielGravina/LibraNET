@@ -33,3 +33,6 @@ no banco de dados para o exemplar do livro, com relacionamento com a tabela Livr
 ---OPCIONAL---
 [ ] Criar imagens das capas dos livros 
 [ ] Terminar o sistema de geração de relatórios
+
+
+OBS: CRIAR LIVRO NÃO FUNCIONA COM OS DADOS DO POPULATE_DATA ALTERNATIVO. SOMENTE COM O FETCH DA OPENLIBRARY API.

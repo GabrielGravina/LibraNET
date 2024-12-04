@@ -24,7 +24,11 @@ no banco de dados para o exemplar do livro, com relacionamento com a tabela Livr
 [ ] Fazer com que a classe exemplares herde de livros
 [ ] Remover console.logs
 [ ] O livro quando criado é atribuido apenas a uma biblioteca. Porém, e se ele estiver disponível em várias bibliotecas?
+ 
 
+---URGENTE---
+
+[ ] Editar BookPage.jsx
 
 ---OPCIONAL---
 [ ] Criar imagens das capas dos livros 

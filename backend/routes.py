@@ -51,16 +51,12 @@ class LivroController:
             autor = data.get("autor")
             categoria = data.get("categoria")
             ano_publicado = data.get("ano_publicado")
-            biblioteca_id = data.get("biblioteca_id")
+            exemplar_id = data.get("exemplar_id")
             disponivel = data.get("disponivel", True)
             quantidade_exemplares = int(data.get("quantidade_exemplares", 0))
 
             if not titulo or not categoria:
                 return jsonify({"error": "Título e Categoria são obrigatórios"}), 400
-
-            biblioteca = db.session.query(Biblioteca).filter_by(id=biblioteca_id).first()
-            if not biblioteca:
-                return jsonify({"error": "Biblioteca não encontrada"}), 404
 
             # Busca da imagem de capa
             imagem_capa = None
@@ -94,7 +90,7 @@ class LivroController:
                 autor=autor,
                 categoria=categoria,
                 ano_publicado=ano_publicado,
-                biblioteca_id=biblioteca_id,
+                exemplar_id=exemplar_id,
                 disponivel=disponivel,
                 imagem_capa=imagem_capa
             )
@@ -109,7 +105,7 @@ class LivroController:
                     codigo_inventario=codigo_inventario,
                     disponivel=True,
                     condicao="Bom",
-                    biblioteca_id=biblioteca_id
+                    exemplar_id=exemplar_id
                 )
                 exemplares.append(novo_exemplar)
                 db.session.add(novo_exemplar)
@@ -125,49 +121,71 @@ class LivroController:
             print(f"Erro ao criar livro: {e}")
             return jsonify({"error": "Erro ao criar livro com exemplares.", "details": str(e)}), 500
 
-
-
             
-    @app.route('/api/livros', methods=['GET'])
+    @app.route('/api/livros/disponiveis', methods=['GET'])
     def get_livros_disponiveis():
         try:
-            # Fazer um join entre Livro e Biblioteca para obter os dados necessários
             livros = db.session.query(
                 Livro,
-                Biblioteca.nome.label("biblioteca_nome")
+                db.func.count(Exemplar.id).label("quantidade_exemplares")
             ).join(
-                Biblioteca, Livro.biblioteca_id == Biblioteca.id
+                Exemplar, Exemplar.livro_id == Livro.id
+            ).filter(
+                Exemplar.disponivel == True
+            ).group_by(
+                Livro.id
             ).all()
 
-            resultado = []
-
-            for livro, biblioteca_nome in livros:
-                # Contar exemplares disponíveis
-                exemplares_disponiveis = db.session.query(Exemplar).filter_by(
-                    livro_id=livro.id, disponivel=True
-                ).count()
-
-                # O livro é considerado disponível se houver ao menos um exemplar disponível
-                disponivel = exemplares_disponiveis > 0
-
-                if disponivel:
-                    resultado.append({
-                        "id": livro.id,
-                        "titulo": livro.titulo,
-                        "autor": livro.autor,
-                        "categoria": livro.categoria,
-                        "ano_publicado": livro.ano_publicado,
-                        "biblioteca_id": livro.biblioteca_id,
-                        "biblioteca_nome": biblioteca_nome,  # Nome da biblioteca incluído
-                        "quantidade_exemplares": exemplares_disponiveis,
-                        "disponivel": disponivel,
-                        "imagem_capa": livro.imagem_capa  # Certifique-se de que este campo existe no modelo Livro
-                    })
+            resultado = [
+                {
+                    "id": livro.id,
+                    "titulo": livro.titulo,
+                    "autor": livro.autor,
+                    "categoria": livro.categoria,
+                    "ano_publicado": livro.ano_publicado,
+                    "imagem_capa": livro.imagem_capa,
+                    "quantidade_exemplares": quantidade_exemplares
+                }
+                for livro, quantidade_exemplares in livros
+            ]
 
             return jsonify(resultado), 200
         except Exception as e:
-            return jsonify({"error": "Erro ao obter livros.", "details": str(e)}), 500
+            return jsonify({"error": "Erro ao obter livros disponíveis.", "details": str(e)}), 500
+
+
+    
+    @app.route('/api/exemplares/<int:livro_id>/disponiveis', methods=['GET'])
+    def get_exemplares_disponiveis(livro_id):
+        try:
+            # Buscar exemplares disponíveis para o livro especificado
+            exemplares = Exemplar.query.filter_by(livro_id=livro_id, disponivel=True).all()
+            
+            if not exemplares:
+                return jsonify({"message": "Não há exemplares disponíveis para este livro."}), 404
+            
+            # Converter os exemplares para JSON
+            resultado = [
+                {
+                    "id": exemplar.id,
+                    "titulo": exemplar.livro.titulo,  # Título do livro associado ao exemplar
+                    "condicao": exemplar.condicao,
+                    "codigo_inventario": exemplar.codigo_inventario,  # Código único do exemplar
+                    "disponivel": exemplar.disponivel,
+                    "prateleira": exemplar.prateleira.localizacao,  # Localização da prateleira
+                    "biblioteca": exemplar.prateleira.biblioteca.nome  # Nome da biblioteca associada à prateleira
+                }
+                for exemplar in exemplares
+            ]
+            
+            return jsonify(resultado), 200
+        except Exception as e:
+            return jsonify({"error": "Erro ao buscar exemplares disponíveis.", "details": str(e)}), 500
+
+
         
+
+
 
     @app.route('/api/livros/<int:livro_id>', methods=['GET'])
     def get_livro(livro_id):
@@ -270,6 +288,23 @@ def popular_livros_openlibrary():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Erro ao popular livros", "details": str(e)}), 500
+    
+    @app.route('/api/exemplares/<int:livro_id>/disponiveis', methods=['GET'])
+    def get_exemplares_disponiveis_por_livro(livro_id):
+        try:
+            exemplares = Exemplar.query.filter_by(livro_id=livro_id, disponivel=True).all()
+
+            resultado = [
+                {
+                    "id": exemplar.id,
+                    "codigo": exemplar.codigo  # Adapte com campos relevantes
+                }
+                for exemplar in exemplares
+            ]
+
+            return jsonify(resultado), 200
+        except Exception as e:
+            return jsonify({"error": "Erro ao obter exemplares disponíveis.", "details": str(e)}), 500
 
 #----------------------------------
 class UsuarioController:
@@ -371,8 +406,12 @@ def get_emprestimo(emprestimo_id):
     if not emprestimo:
         return jsonify({"error": "Empréstimo não encontrado."}), 404
 
-    # O livro agora é acessado diretamente pela relação do Emprestimo
-    livro = emprestimo.livro  # Agora já existe a relação direta
+    # Acessando o livro através do exemplar associado ao empréstimo
+    exemplar = Exemplar.query.get(emprestimo.exemplar_id)  # A relação entre emprestimo e exemplar
+    if not exemplar:
+        return jsonify({"error": "Exemplar não encontrado."}), 404
+    
+    livro = exemplar.livro  # Agora acessamos o livro associado ao exemplar
 
     # A lógica de multa agora checa se existe e se data_pagamento não é None
     multa_data = None
@@ -385,7 +424,7 @@ def get_emprestimo(emprestimo_id):
     emprestimo_data = {
         "emprestimo_id": emprestimo.id,
         "usuario_nome": emprestimo.usuario.nome,
-        "livro_titulo": livro.titulo if livro else None,  # Inclui o título do livro
+        "livro_titulo": livro.titulo if livro else None,  # Inclui o título do livro do exemplar
         "data_emprestimo": emprestimo.data_emprestimo.isoformat(),
         "data_devolucao": emprestimo.data_devolucao.isoformat() if emprestimo.data_devolucao else None,
         "devolvido": emprestimo.devolvido,
@@ -396,40 +435,33 @@ def get_emprestimo(emprestimo_id):
 
 
 
+
 @app.route('/api/emprestimos', methods=['POST'])
 def criar_emprestimo():
     data = request.get_json()
-    livro_id = data.get('livro_id')
+    exemplar_id = data.get('exemplar_id')  # Recebe o exemplar_id do front
     usuario_id = data.get('usuario_id')
 
     # Validações básicas
-    if not livro_id or not usuario_id:
-        return jsonify({"error": "Campos livro_id e usuario_id são obrigatórios."}), 400
-
-    # Busca o livro
-    livro = Livro.query.filter_by(id=livro_id).first()
-    if not livro:
-        return jsonify({"error": "Livro não encontrado."}), 404
-
-    # Verifica se há exemplares disponíveis para o livro
-    exemplar_disponivel = Exemplar.query.filter_by(livro_id=livro.id, disponivel=True).first()
-    if not exemplar_disponivel:
-        return jsonify({"error": "Não há exemplares disponíveis para empréstimo."}), 400
+    if not exemplar_id or not usuario_id:
+        return jsonify({"error": "Campos exemplar_id e usuario_id são obrigatórios."}), 400
 
     try:
+        # Verifica se o exemplar existe e está disponível
+        exemplar = Exemplar.query.filter_by(id=exemplar_id, disponivel=True).first()
+        if not exemplar:
+            return jsonify({"error": "Exemplar não encontrado ou indisponível."}), 404
+
         # Criar o empréstimo
         novo_emprestimo = Emprestimo(
-            livro_id=livro.id,
+            exemplar_id=exemplar.id,
             usuario_id=usuario_id,
-            exemplar_id=exemplar_disponivel.id  # Relaciona com o exemplar
+            data_emprestimo=datetime.utcnow(),
+            devolvido=False
         )
 
         # Atualizar a disponibilidade do exemplar
-        exemplar_disponivel.disponivel = False
-
-        # Verificar se ainda há exemplares disponíveis após o empréstimo
-        exemplares_disponiveis = Exemplar.query.filter_by(livro_id=livro.id, disponivel=True).count()
-        livro.disponivel = exemplares_disponiveis > 0  # Atualiza o status do livro
+        exemplar.disponivel = False
 
         # Salvar no banco de dados
         db.session.add(novo_emprestimo)
@@ -438,8 +470,11 @@ def criar_emprestimo():
         return jsonify({"message": "Empréstimo criado com sucesso."}), 201
 
     except Exception as e:
-        db.session.rollback()  # Reverter transações em caso de erro
+        db.session.rollback()  # Reverte a transação em caso de erro
         return jsonify({"error": "Erro ao criar empréstimo.", "details": str(e)}), 500
+
+
+
 
 
 @app.route("/api/emprestimo/user/<int:usuario_id>", methods=["GET"])
@@ -486,8 +521,13 @@ def buscar_emprestimos_por_nome(nome):
             usuario_emprestimos = db.session.query(Emprestimo).filter(Emprestimo.usuario_id == usuario.id).all()
             
             for emp in usuario_emprestimos:
-                # Buscar o livro associado ao empréstimo
-                livro = db.session.query(Livro).filter(Livro.id == emp.livro_id).first()
+                # Buscar o exemplar associado ao empréstimo
+                exemplar = db.session.query(Exemplar).filter(Exemplar.id == emp.exemplar_id).first()
+                livro = (
+                    db.session.query(Livro)
+                    .filter(Livro.id == exemplar.livro_id)
+                    .first() if exemplar else None
+                )
 
                 # Buscar as multas associadas ao empréstimo
                 multas = db.session.query(Multa).filter(Multa.emprestimo_id == emp.id).all()
@@ -496,7 +536,8 @@ def buscar_emprestimos_por_nome(nome):
                 emprestimos.append({
                     "emprestimo_id": emp.id,
                     "usuario_nome": usuario.nome,
-                    "livro_titulo": livro.titulo if livro else "Livro não encontrado",  # Adiciona o nome do livro
+                    "livro_titulo": livro.titulo if livro else "Livro não encontrado",  # Adiciona o título do livro
+                    "codigo_exemplar": exemplar.id if exemplar else "Exemplar não encontrado",
                     "data_emprestimo": emp.data_emprestimo,
                     "data_devolucao": emp.data_devolucao,
                     "devolvido": emp.devolvido,

@@ -3,6 +3,31 @@ from models import Biblioteca, Livro, Usuario, Emprestimo, Prateleira, Exemplar
 from datetime import datetime, timedelta
 import random
 
+def fetch_books_from_openlibrary(count=8):
+    """
+    Busca livros da OpenLibrary API.
+    """
+    url = "https://openlibrary.org/search.json"
+    query = "fiction"  # Palavra-chave para buscar livros (pode ser alterada conforme necessário)
+    params = {"q": query, "limit": count}
+
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        books = data.get('docs', [])
+        return [
+            {
+                "titulo": book.get("title", "Título Desconhecido"),
+                "autor": ", ".join(book.get("author_name", ["Autor Desconhecido"])),
+                "ano_publicado": str(book.get("first_publish_year", "Ano Desconhecido")),
+                "imagem_capa": f"https://covers.openlibrary.org/b/id/{book.get('cover_i')}-L.jpg" if book.get("cover_i") else None,
+                # "imagem_capa": "imagemaleatoria"
+            }
+            for book in books
+        ]
+    else:
+        print("Erro ao buscar livros da API OpenLibrary.")
+        return []
 
 def populate_data(db):
     # Limpa as tabelas relacionadas
@@ -45,73 +70,22 @@ def populate_data(db):
     db.session.add_all(usuarios)
     db.session.commit()
 
-    # Criar livros com dados fixos
-    livros = [
-        Livro(
-            titulo="O Senhor dos Anéis - A Sociedade do Anel",
-            autor="J.R.R. Tolkien",
-            categoria="Fantasia",
-            ano_publicado="1954",
-            imagem_capa="https://covers.openlibrary.org/b/id/111111-L.jpg",  # Imagem fictícia
-            disponivel=True
-        ),
-        Livro(
-            titulo="Dom Quixote",
-            autor="Miguel de Cervantes",
-            categoria="Clássico",
-            ano_publicado="1605",
-            imagem_capa="https://covers.openlibrary.org/b/id/222222-L.jpg",
-            disponivel=True
-        ),
-        Livro(
-            titulo="1984",
-            autor="George Orwell",
-            categoria="Distopia",
-            ano_publicado="1949",
-            imagem_capa="https://covers.openlibrary.org/b/id/333333-L.jpg",
-            disponivel=True
-        ),
-        Livro(
-            titulo="A Revolução dos Bichos",
-            autor="George Orwell",
-            categoria="Fábula",
-            ano_publicado="1945",
-            imagem_capa="https://covers.openlibrary.org/b/id/444444-L.jpg",
-            disponivel=True
-        ),
-        Livro(
-            titulo="O Pequeno Príncipe",
-            autor="Antoine de Saint-Exupéry",
-            categoria="Infantil",
-            ano_publicado="1943",
-            imagem_capa="https://covers.openlibrary.org/b/id/555555-L.jpg",
-            disponivel=True
-        ),
-        Livro(
-            titulo="Harry Potter e a Pedra Filosofal",
-            autor="J.K. Rowling",
-            categoria="Fantasia",
-            ano_publicado="1997",
-            imagem_capa="https://covers.openlibrary.org/b/id/666666-L.jpg",
-            disponivel=True
-        ),
-        Livro(
-            titulo="O Morro dos Ventos Uivantes",
-            autor="Emily Brontë",
-            categoria="Romance",
-            ano_publicado="1847",
-            imagem_capa="https://covers.openlibrary.org/b/id/777777-L.jpg",
-            disponivel=True
-        ),
-        Livro(
-            titulo="A Metamorfose",
-            autor="Franz Kafka",
-            categoria="Ficção",
-            ano_publicado="1915",
-            imagem_capa="https://covers.openlibrary.org/b/id/888888-L.jpg",
-            disponivel=True
-        ),
-    ]
+    # Buscar livros da OpenLibrary API
+    livros_da_api = fetch_books_from_openlibrary(count=40)
+
+    # Criar objetos de Livro e associar a bibliotecas aleatórias
+    livros = []
+    for i, livro_data in enumerate(livros_da_api):
+        biblioteca = random.choice(bibliotecas)  # Selecionar biblioteca aleatória
+        livro = Livro(
+            titulo=livro_data["titulo"],
+            autor=livro_data["autor"],
+            categoria="Diversos",  # Pode ajustar para refletir categorias reais
+            ano_publicado=livro_data["ano_publicado"],
+            imagem_capa=livro_data["imagem_capa"],
+            disponivel=True  # Inicialmente marcados como disponíveis
+        )
+        livros.append(livro)
     db.session.add_all(livros)
     db.session.commit()
 

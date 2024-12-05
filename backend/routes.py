@@ -610,33 +610,37 @@ def update_emprestimo(id):
         return jsonify({"error": "Empréstimo não encontrado."}), 404
 
     # Atualiza os atributos do empréstimo
-    emprestimo.data_devolucao = datetime.strptime(data["data_devolucao"], "%a, %d %b %Y %H:%M:%S %Z")
+    emprestimo.data_devolucao = datetime.fromisoformat(data["data_devolucao"].replace("Z", ""))
+
     emprestimo.devolvido = data.get("devolvido", emprestimo.devolvido)
 
+    # Verifica se há dados de multa na requisição
+    multa_data = data.get("multa")
+    if multa_data:
+        if emprestimo.multa:
+            # Atualiza a multa existente
+            emprestimo.multa.valor = multa_data["valor"]
+            emprestimo.multa.data_pagamento = multa_data.get("data_pagamento", emprestimo.multa.data_pagamento)
+        else:
+            # Cria uma nova multa
+            nova_multa = Multa(
+                emprestimo_id=emprestimo.id,
+                valor=multa_data["valor"],
+                data_pagamento=multa_data.get("data_pagamento")
+            )
+            db.session.add(nova_multa)
+            emprestimo.multa = nova_multa  # Relaciona a nova multa ao empréstimo
 
-    # Atualiza a multa se ela existir
-    if emprestimo.multa:
-        emprestimo.multa.valor = data["multa"]["valor"]  # Atualiza o valor da multa
-        emprestimo.multa.data_pagamento = data["multa"].get("data_pagamento", emprestimo.multa.data_pagamento)
-    
+    # Atualiza disponibilidade do exemplar
     if emprestimo.devolvido:
         exemplar = Exemplar.query.get(emprestimo.exemplar_id)  # Assumindo que emprestimo.exemplar_id é a chave do exemplar emprestado
         if exemplar:
             exemplar.disponivel = True  # Marca o exemplar como disponível
 
-    # else:
-        # # Se não existir, cria uma nova multa
-        # nova_multa = Multa(
-        #     emprestimo_id=emprestimo.id,
-        #     valor=data["multa"]["valor"],
-        #     data_pagamento=data["multa"].get("data_pagamento")
-        # )
-        # db.session.add(nova_multa)
-
-    # Salva as mudanças no banco de dados
     db.session.commit()
 
     return jsonify(emprestimo.to_json()), 200
+
 
 
 # Prateleiras

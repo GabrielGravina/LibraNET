@@ -123,7 +123,7 @@ function LoanList(props) {
 
       {/* Lista de Empréstimos */}
       <div className="loan-list">
-        <h2 className="justify-self-center text-4xl font-semibold mb-2 text-amber-600">
+        <h2 className="justify-self-center text-4xl font-semibold mb-2 text-black">
           {isAdmin
             ? "Todos os dados dos empréstimos"
             : "Seus empréstimos:"}

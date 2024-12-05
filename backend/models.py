@@ -37,7 +37,6 @@ class Livro(db.Model):
             "autor": self.autor,
             "categoria": self.categoria,
             "ano_publicado": self.ano_publicado,
-            "biblioteca_id": self.biblioteca_id,
             "disponivel": self.disponivel,
             "imagem_capa": self.imagem_capa
         }

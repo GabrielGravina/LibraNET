@@ -14,6 +14,7 @@ import LoginPage from "./pages/LoginPage";
 import LoansPage from "./pages/LoansPage";
 import CreateLoanPage from "./pages/CreateLoanPage"
 import CreateBookPage from "./pages/CreateBookPage"
+import Relatorios from "./pages/Relatorios"
 
 const router = createBrowserRouter([
 	{
@@ -53,6 +54,10 @@ const router = createBrowserRouter([
 	{
 		path: "/emprestimos/criar",
 		element: <CreateLoanPage />
+	},
+	{
+		path: "/relatorios",
+		element: <Relatorios />
 	}
 ]);
 

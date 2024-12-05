@@ -142,16 +142,15 @@ function CreateLoanPage() {
                 </label>
                 <select
                   id="exemplar"
-                  className="w-full p-2 border text-white border-gray-300 rounded-md text-black"
+                  className="w-full p-2 border text-white border-gray-300 rounded-md "
                   value={exemplarId}
                   onChange={(e) => setExemplarId(e.target.value)}
                   required
                 >
                   <option value="">Selecione um exemplar</option>
-                  {console.log(exemplares, "AQUIII")}
                   {exemplares.map((exemplar) => (
                     <option key={exemplar.id} value={exemplar.id}>
-                      Exemplar {exemplar.biblioteca}
+                      {"código: " + exemplar.codigo_inventario + " => " + exemplar.biblioteca + " => " + exemplar.prateleira}
                     </option>
                   ))}
                 </select>
@@ -165,7 +164,7 @@ function CreateLoanPage() {
               </label>
               <select
                 id="usuario"
-                className="w-full p-2 border text-white border-gray-300 rounded-md text-black"
+                className="w-full p-2 border  border-gray-300 rounded-md text-white"
                 value={usuarioId}
                 onChange={(e) => setUsuarioId(e.target.value)}
                 required

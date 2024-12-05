@@ -21,7 +21,7 @@ no banco de dados para o exemplar do livro, com relacionamento com a tabela Livr
 [x] Adicionar campo para quantos exemplares serão criados para cada livro criado
 
 [ ] Criar classes de controllers para rotas do backend
-[ ] Fazer com que a classe exemplares herde de livros
+[x] Fazer com que a classe exemplares herde de livros -- Melhor não
 [ ] Remover console.logs
 [ ] O livro quando criado é atribuido apenas a uma biblioteca. Porém, e se ele estiver disponível em várias bibliotecas?
  

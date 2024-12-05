@@ -41,6 +41,7 @@ function LoanList(props) {
         if (response.ok) {
           const data = await response.json();
           setResults(data);
+          
         } else {
           console.log("Erro ao buscar dados.");
         }
@@ -105,7 +106,7 @@ function LoanList(props) {
       console.error("Erro ao marcar devolução: ", error);
     }
   };
-
+  console.log("Result: " + JSON.stringify(results))
   return (
     <div className="flex-auto w-full m-auto bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh]">
       {/* Renderiza a barra de pesquisa apenas se for admin */}
@@ -142,8 +143,10 @@ function LoanList(props) {
 			  	
 				
 			</p>
+              
+              <p className="text-sm text-gray-600">Título do livro: {result.livro_titulo}</p>
               <p className="text-sm text-gray-600">ID do empréstimo: {result.emprestimo_id}</p>
-              <p className="text-sm text-gray-600">Livro: {result.livro_titulo}</p>
+              <p className="text-sm text-gray-600">Id do exemplar: {result.exemplar_id}</p>
               <p className="text-sm text-gray-600">Data do Empréstimo: {result.data_emprestimo}</p>
               <p className="text-sm text-gray-600">Data de Devolução: {result.data_devolucao}</p>
               <p className="text-sm text-gray-600">

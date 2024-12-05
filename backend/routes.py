@@ -51,6 +51,7 @@ class LivroController:
             autor = data.get("autor")
             categoria = data.get("categoria")
             ano_publicado = data.get("ano_publicado")
+            prateleira_id = data.get("prateleira_id")
             exemplar_id = data.get("exemplar_id")
             disponivel = data.get("disponivel", True)
             quantidade_exemplares = int(data.get("quantidade_exemplares", 0))
@@ -89,8 +90,7 @@ class LivroController:
                 titulo=titulo,
                 autor=autor,
                 categoria=categoria,
-                ano_publicado=ano_publicado,
-                exemplar_id=exemplar_id,
+                ano_publicado=ano_publicado,             
                 disponivel=disponivel,
                 imagem_capa=imagem_capa
             )
@@ -105,7 +105,8 @@ class LivroController:
                     codigo_inventario=codigo_inventario,
                     disponivel=True,
                     condicao="Bom",
-                    exemplar_id=exemplar_id
+                    prateleira_id=prateleira_id
+
                 )
                 exemplares.append(novo_exemplar)
                 db.session.add(novo_exemplar)
@@ -286,13 +287,29 @@ class LivroController:
             }), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500    
+        
+    @app.route('/api/exemplares/<int:livro_id>/disponiveis', methods=['GET'])
+    def get_exemplares_disponiveis_por_livro(livro_id):
+        try:
+            exemplares = Exemplar.query.filter_by(livro_id=livro_id, disponivel=True).all()
+
+            resultado = [
+                {
+                    "id": exemplar.id,
+                    "codigo": exemplar.codigo  # Adapte com campos relevantes
+                }
+                for exemplar in exemplares
+            ]
+
+            return jsonify(resultado), 200
+        except Exception as e:
+            return jsonify({"error": "Erro ao obter exemplares disponíveis.", "details": str(e)}), 500
 
 
 @app.route('/api/popular-livros', methods=['POST'])
 def popular_livros_openlibrary():
     try:
-        # Parâmetro de busca enviado pelo cliente
-        query = request.args.get('query', 'programming')  # Valor padrão: "programming"
+        query = request.args.get('query', 'programming')
         api_url = f'https://openlibrary.org/search.json?q={query}'
 
         response = requests.get(api_url)
@@ -334,22 +351,7 @@ def popular_livros_openlibrary():
         db.session.rollback()
         return jsonify({"error": "Erro ao popular livros", "details": str(e)}), 500
     
-    @app.route('/api/exemplares/<int:livro_id>/disponiveis', methods=['GET'])
-    def get_exemplares_disponiveis_por_livro(livro_id):
-        try:
-            exemplares = Exemplar.query.filter_by(livro_id=livro_id, disponivel=True).all()
-
-            resultado = [
-                {
-                    "id": exemplar.id,
-                    "codigo": exemplar.codigo  # Adapte com campos relevantes
-                }
-                for exemplar in exemplares
-            ]
-
-            return jsonify(resultado), 200
-        except Exception as e:
-            return jsonify({"error": "Erro ao obter exemplares disponíveis.", "details": str(e)}), 500
+    
 
 #----------------------------------
 class UsuarioController:
@@ -418,7 +420,6 @@ class UsuarioController:
 
     @staticmethod
     def usuario_to_dict(usuario):
-        """Método para converter o objeto Usuario em dicionário"""
         return {
             "id": usuario.id,
             "cpf": usuario.cpf,
@@ -525,32 +526,45 @@ def criar_emprestimo():
 @app.route("/api/emprestimo/user/<int:usuario_id>", methods=["GET"])
 def buscar_emprestimos_do_usuario(usuario_id):
     try:
+        # Buscar todos os empréstimos do usuário
         emprestimos = db.session.query(Emprestimo).filter(Emprestimo.usuario_id == usuario_id).all()
 
         # Lista para armazenar os dados dos empréstimos
         emprestimos_response = []
         for emp in emprestimos:
-            # Buscar o livro associado ao empréstimo
-            livro = db.session.query(Livro).filter(Livro.id == emp.livro_id).first()
+            # Buscar o exemplar associado ao empréstimo
+            exemplar = db.session.query(Exemplar).filter(Exemplar.id == emp.exemplar_id).first()
 
-            # Buscar as multas associadas ao empréstimo
-            multas = db.session.query(Multa).filter(Multa.emprestimo_id == emp.id).all()
-            valor_multa = sum(multa.valor for multa in multas) if multas else 0.0  # Soma todas as multas, se houver
+            if exemplar:
+                # Buscar o livro associado ao exemplar
+                livro = db.session.query(Livro).filter(Livro.id == exemplar.livro_id).first()
+                
+                # Buscar as multas associadas ao empréstimo
+                multas = db.session.query(Multa).filter(Multa.emprestimo_id == emp.id).all()
+                valor_multa = sum(multa.valor for multa in multas) if multas else 0.0  # Soma todas as multas, se houver
 
-            emprestimos_response.append({
-                "emprestimo_id": emp.id,
-                "livro_titulo": livro.titulo if livro else "Livro não encontrado",  # Adiciona o nome do livro
-                "data_emprestimo": emp.data_emprestimo,
-                "data_devolucao": emp.data_devolucao,
-                "devolvido": emp.devolvido,
-                "multa": valor_multa  # Inclui o valor da multa total
-            })
+                emprestimos_response.append({
+                    "emprestimo_id": emp.id,
+                    "livro_titulo": livro.titulo if livro else "Livro não encontrado",  # Nome do livro
+                    "exemplar_id": exemplar.id,   # ID do exemplar
+                    "data_emprestimo": emp.data_emprestimo,
+                    "data_devolucao": emp.data_devolucao,
+                    "devolvido": emp.devolvido,
+                    "multa": valor_multa  # Inclui o valor da multa total
+                })
+            else:
+                # Se não encontrar exemplar, adicionar erro na resposta
+                emprestimos_response.append({
+                    "emprestimo_id": emp.id,
+                    "erro": "Exemplar não encontrado"
+                })
 
         return jsonify(emprestimos_response), 200
 
     except Exception as e:
         print("Erro ao buscar empréstimos:", str(e))
         return jsonify({"error": str(e)}), 500
+
 
 
 

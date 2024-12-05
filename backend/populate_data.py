@@ -25,7 +25,7 @@ def populate_data(db):
     # Criar prateleiras
     prateleiras = []
     for biblioteca in bibliotecas:
-        for i in range(3):  # Três prateleiras por biblioteca
+        for i in range(3):  # Cria com três prateleiras por biblioteca.
             prateleiras.append(
                 Prateleira(codigo=f"{biblioteca.nome[:3].upper()}-{i+1}", 
                            localizacao=f"Andar {i+1} - Setor {chr(65 + i)}", 
@@ -84,7 +84,7 @@ def populate_data(db):
             autor="Antoine de Saint-Exupéry",
             categoria="Infantil",
             ano_publicado="1943",
-            imagem_capa="https://covers.openlibrary.org/b/id/555555-L.jpg",
+            imagem_capa="https://covers.openlibrary.org/b/id/555515-L.jpg",
             disponivel=True
         ),
         Livro(

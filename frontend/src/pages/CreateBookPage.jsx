@@ -6,11 +6,10 @@ function CreateBookPage() {
   const [titulo, setTitulo] = useState("");
   const [autor, setAutor] = useState("");
   const [anoPublicacao, setAnoPublicacao] = useState("");
-  const [categoria, setCategoria] = useState(""); // Adicionando o estado para Categoria
-  const [prateleiraId, setPrateleiraId] = useState(""); // Adicionando o estado para prateleira_id
-  const [bibliotecaId, setBibliotecaId] = useState(""); // Adicionando o estado para biblioteca_id
+  const [categoria, setCategoria] = useState("");
+  const [prateleiraId, setPrateleiraId] = useState("");
+  const [quantidadeExemplares, setQuantidadeExemplares] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [quantidadeExemplares, setQuantidadeExemplares] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const navigate = useNavigate();
@@ -20,30 +19,15 @@ function CreateBookPage() {
     setIsSubmitting(true);
     setErrorMessage("");
 
-    // Verificando se todos os campos obrigatórios estão preenchidos
-    if (!titulo || !autor || !anoPublicacao || !categoria || !bibliotecaId) {
-      setErrorMessage("Todos os campos são obrigatórios.");
+    // Validações básicas
+    if (!titulo || !autor || !anoPublicacao || !categoria) {
+      setErrorMessage("Todos os campos obrigatórios devem ser preenchidos.");
       setIsSubmitting(false);
       return;
     }
 
-    // Verificando se o ano de publicação é válido
     if (anoPublicacao < 0 || anoPublicacao > new Date().getFullYear()) {
-      setErrorMessage("O ano de publicação deve ser entre 0 e o ano atual.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Verificando se a categoria é uma string válida
-    if (!isNaN(categoria)) {
-      setErrorMessage("A categoria deve ser uma string válida.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    // Verificando se prateleiraId e bibliotecaId são números válidos
-    if (isNaN(prateleiraId) || isNaN(bibliotecaId)) {
-      setErrorMessage("prateleiraId e bibliotecaId devem ser números válidos.");
+      setErrorMessage("O ano de publicação deve ser válido.");
       setIsSubmitting(false);
       return;
     }
@@ -53,12 +37,22 @@ function CreateBookPage() {
       autor,
       ano_publicacao: anoPublicacao,
       categoria,
-      biblioteca_id: bibliotecaId,  
-      quantidade_exemplares: quantidadeExemplares
     };
 
-    console.log("Dados do livro enviados:", newBook);
-
+    // Adicionar somente se os campos forem preenchidos
+    if (quantidadeExemplares) {
+      newBook.quantidade_exemplares = parseInt(quantidadeExemplares, 10);
+    }
+    if (prateleiraId) {
+      const parsedPrateleiraId = parseInt(prateleiraId, 10);
+      if (isNaN(parsedPrateleiraId)) {
+        setErrorMessage("O ID da prateleira deve ser um número válido.");
+        setIsSubmitting(false);
+        return;
+      }
+      newBook.prateleira_id = parsedPrateleiraId;
+    }
+    console.log("Payload enviado:", newBook);
     try {
       const response = await fetch("http://127.0.0.1:5000/api/livros", {
         method: "POST",
@@ -69,13 +63,13 @@ function CreateBookPage() {
       });
 
       if (response.ok) {
-        navigate("/livros"); // Redireciona para a página de livros após sucesso
+        navigate("/livros");
       } else {
         const data = await response.json();
         setErrorMessage(data.error || "Erro ao criar livro.");
       }
     } catch (error) {
-      console.error("Erro ao enviar requisição de criação de livro:", error);
+      console.error("Erro ao criar livro:", error);
       setErrorMessage("Erro ao criar livro.");
     } finally {
       setIsSubmitting(false);
@@ -85,131 +79,109 @@ function CreateBookPage() {
   return (
     <div>
       <Navbar />
-
       <div className="flex-col justify-center m-auto">
         <section className="bg-gradient-to-b from-light-orange to-white bg-cover bg-center min-h-[92vh] flex items-center justify-center">
-            <div className="min-w-[22vw] mx-auto p-6 bg-white shadow-md rounded-lg text-black">
+          <div className="min-w-[22vw] mx-auto p-6 bg-white shadow-md rounded-lg text-black">
             <h1 className="text-2xl font-semibold mb-4">Criar Livro</h1>
 
-            {/* Exibição de erros */}
             {errorMessage && (
-                <div className="mb-4 text-red-500">{errorMessage}</div>
+              <div className="mb-4 text-red-500">{errorMessage}</div>
             )}
 
             <form onSubmit={handleSubmit}>
-                {/* Campo para título */}
-                <div className="mb-4">
+              <div className="mb-4">
                 <label htmlFor="titulo" className="block text-lg font-medium mb-2">
-                    Título
+                  Título
                 </label>
                 <input
-                    type="text"
-                    id="titulo"
-                    className="w-full p-2 border bg-gray-600 bg-gray-600 border-gray-300 rounded-md text-white"
-                    value={titulo}
-                    onChange={(e) => setTitulo(e.target.value)}
-                    required
+                  type="text"
+                  id="titulo"
+                  className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
+                  value={titulo}
+                  onChange={(e) => setTitulo(e.target.value)}
+                  required
                 />
-                </div>
-
-                {/* Campo para autor */}
-                <div className="mb-4">
+              </div>
+              <div className="mb-4">
                 <label htmlFor="autor" className="block text-lg font-medium mb-2">
-                    Autor
+                  Autor
                 </label>
                 <input
-                    type="text"
-                    id="autor"
-                    className="w-full p-2 border border-gray-300 bg-gray-600 rounded-md text-white"
-                    value={autor}
-                    onChange={(e) => setAutor(e.target.value)}
-                    required
+                  type="text"
+                  id="autor"
+                  className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
+                  value={autor}
+                  onChange={(e) => setAutor(e.target.value)}
+                  required
                 />
-                </div>
-
-                {/* Campo para ano de publicação */}
-                <div className="mb-4">
+              </div>
+              <div className="mb-4">
                 <label htmlFor="anoPublicacao" className="block text-lg font-medium mb-2">
-                    Ano de Publicação
+                  Ano de Publicação
                 </label>
                 <input
-                    type="number"
-                    id="anoPublicacao"
-                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
-                    value={anoPublicacao}
-                    onChange={(e) => setAnoPublicacao(e.target.value)}
-                    required
+                  type="number"
+                  id="anoPublicacao"
+                  className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
+                  value={anoPublicacao}
+                  onChange={(e) => setAnoPublicacao(e.target.value)}
+                  required
                 />
-                </div>
-
-                {/* Campo para categoria */}
-                <div className="mb-4">
+              </div>
+              <div className="mb-4">
                 <label htmlFor="categoria" className="block text-lg font-medium mb-2">
-                    Categoria
+                  Categoria
                 </label>
                 <input
-                    type="text"
-                    id="categoria"
-                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
-                    value={categoria}
-                    onChange={(e) => setCategoria(e.target.value)}
-                    required
+                  type="text"
+                  id="categoria"
+                  className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value)}
+                  required
                 />
-                </div>
-
-                {/* Campo para prateleira_id */}
-                <div className="mb-4">
-                
-               
-                </div>
-
-                {/* Campo para biblioteca_id */}
-                <div className="mb-4">
-                <label htmlFor="bibliotecaId" className="block text-lg font-medium mb-2">
-                    Biblioteca ID
+              </div>
+              <div className="mb-4">
+                <label htmlFor="prateleiraId" className="block text-lg font-medium mb-2">
+                  ID da Prateleira (Opcional)
                 </label>
                 <input
-                    type="number"
-                    id="bibliotecaId"
-                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
-                    value={bibliotecaId}
-                    onChange={(e) => setBibliotecaId(e.target.value)}
-                    required
+                  type="number"
+                  id="prateleiraId"
+                  className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
+                  value={prateleiraId}
+                  onChange={(e) => setPrateleiraId(e.target.value)}
                 />
-                </div>
-
-                {/* Campo para número de exemplares que serão criados */}
-                <div className="mb-4">
-                <label htmlFor="bibliotecaId" className="block text-lg font-medium mb-2">
-                    Número de exemplares
+              </div>
+              <div className="mb-4">
+                <label
+                  htmlFor="quantidadeExemplares"
+                  className="block text-lg font-medium mb-2"
+                >
+                  Número de Exemplares (Opcional)
                 </label>
                 <input
-                    type="number"
-                    id="quantidadeExemplares"
-                    className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
-                    value={quantidadeExemplares}
-                    onChange={(e) => setQuantidadeExemplares(e.target.value)}
-                    required
+                  type="number"
+                  id="quantidadeExemplares"
+                  className="w-full p-2 border bg-gray-600 border-gray-300 rounded-md text-white"
+                  value={quantidadeExemplares}
+                  onChange={(e) => setQuantidadeExemplares(e.target.value)}
                 />
-                </div>
-
-                {/* Botão de submit */}
-                <button
+              </div>
+              <button
                 type="submit"
                 className="w-full bg-gradient-to-b from-amber-600 to-orange shadow-lg bg-cover bg-center text-white p-3 rounded-md hover:bg-gradient-to-b hover:from-hard-orange hover:to-hard-orange disabled:opacity-50 transition-all"
                 disabled={isSubmitting}
-                >
+              >
                 {isSubmitting ? "Criando..." : "Criar Livro"}
-                </button>
+              </button>
             </form>
-            </div>
+          </div>
         </section>
-    </div>
-
-      
-     
+      </div>
     </div>
   );
 }
 
 export default CreateBookPage;
+

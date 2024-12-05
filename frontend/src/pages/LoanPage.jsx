@@ -54,6 +54,7 @@ export default function LoanPage() {
 			}
 			const updatedData = await response.json();
 			setLoanData(updatedData); // Atualiza com dados novos
+			console.log("--LoanData---" + loanData)
 			alert("Empréstimo atualizado com sucesso!");
 		} catch (error) {
 			alert(error.message);

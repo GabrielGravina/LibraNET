@@ -48,7 +48,7 @@ class Exemplar(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     livro_id = db.Column(db.Integer, db.ForeignKey('livro.id'), nullable=False)
     prateleira_id = db.Column(db.Integer, db.ForeignKey('prateleira.id'), nullable=False)  # Relacionamento com a prateleira
-    codigo_inventario = db.Column(db.String(50), unique=True, nullable=False)  # Unique = True, para identificar o exemplar unicamente
+    codigo_inventario = db.Column(db.String(50), unique=True, nullable=False)  # Unique = True, para identificar o exemplar unicamente. O código é apenas para melhorar a visualização
     disponivel = db.Column(db.Boolean, default=True)
     condicao = db.Column(db.String(50), default="Bom")  # Ex: Bom, Ruim, etc.
     
@@ -151,18 +151,3 @@ class Prateleira(db.Model):
             "biblioteca_id": self.biblioteca_id
         }
 
-# class Reserva(db.Model):
-#     reserva_id = db.Column(db.Integer, Primary_key=True)
-#     usuario_id = db.Column(db.Integer, nullable=False)
-#     livro_id = db.Column(db.Integer, nullable=False)
-#     data_reserva = db.Column(db.DateTime, nullable=False)
-#     data_validade = db.Column(db.DateTime, nullable=False)
-
-#     def to_json(self):
-#         return {
-#             "reservaId": self.reserva_id,
-#             "usuarioId": self.usuario_id,
-#             "livroId": self.livro_id,
-#             "dataReserva": self.data_reserva,
-#             "dataValidade": self.data_validade
-#         }

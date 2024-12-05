@@ -7,6 +7,7 @@ import { FaHome } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { FaPlus } from "react-icons/fa";
 import { FaAddressBook } from "react-icons/fa";
+import { BiSolidReport } from "react-icons/bi";
 
 
 
@@ -73,6 +74,12 @@ function Navbar() {
 							<Link to={`/livros/criar`} className="font-semibold text-lg flex items-center">
 								<FaPlus className="m-2" size={22} />
 								Criar Livro
+							</Link>
+						</li>
+						<li className="px-4 py-2 hover:opacity-80">
+							<Link to={`/relatorios`} className="font-semibold text-lg flex items-center">
+								<BiSolidReport className="m-2" size={22} />
+								Relatórios
 							</Link>
 						</li>
 

@@ -204,6 +204,7 @@ class LivroController:
             # Retorna erro genérico em caso de exceção
             return jsonify({"error": "Erro ao buscar o livro", "details": str(e)}), 500
         
+    
     @app.route('/api/livros/<int:livro_id>', methods=['PATCH'])
     def update_livro(livro_id):
         try:
@@ -214,7 +215,6 @@ class LivroController:
             if not livro:
                 return jsonify({"error": "Livro não encontrado"}), 404
 
-            # Atualizar os campos fornecidos no payload
             if "titulo" in data:
                 livro.titulo = data["titulo"]
             if "autor" in data:
@@ -224,23 +224,68 @@ class LivroController:
                 livro.categoria = data["categoria"]
             if "ano_publicado" in data:
                 livro.ano_publicado = data["ano_publicado"]
-            if "biblioteca_id" in data:
-                biblioteca = db.session.query(Biblioteca).filter_by(id=data["biblioteca_id"]).first()
-                if not biblioteca:
-                    return jsonify({"error": "Biblioteca não encontrada"}), 404
-                livro.biblioteca_id = data["biblioteca_id"]
-            if "disponivel" in data:
-                livro.disponivel = data["disponivel"]
-            if "status" in data:
-                livro.status = data["status"]
-
-            # Confirmar as mudanças no banco de dados
+        
             db.session.commit()
             return jsonify(livro.to_json()), 200
 
         except Exception as e:
             db.session.rollback()
             return jsonify({"error": "Erro ao atualizar o livro.", "details": str(e)}), 500
+        
+
+
+    @app.route('/api/livros/<int:livro_id>/exemplares', methods=['GET'])
+    def get_exemplares(livro_id):
+        try:
+            # Verifica se o livro existe
+            livro = Livro.query.get(livro_id)
+            if not livro:
+                return jsonify({"error": "Livro não encontrado."}), 404
+
+            # Busca os exemplares associados ao livro
+            exemplares = Exemplar.query.filter_by(livro_id=livro_id).all()
+            exemplares_data = [
+                {
+                    "id": exemplar.id,
+                    "codigo_inventario": exemplar.codigo_inventario,
+                    "prateleira_id": exemplar.prateleira_id,
+                    "condicao": exemplar.condicao,
+                    "prateleira": {
+                        "codigo": exemplar.prateleira.codigo,
+                        "localizacao": exemplar.prateleira.localizacao,
+                    } if exemplar.prateleira else None
+                }
+                for exemplar in exemplares
+            ]
+            return jsonify(exemplares_data), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+    @app.route('/api/exemplar/<int:exemplar_id>', methods=['PATCH'])
+    def update_exemplar(exemplar_id):
+        try:
+            # Verifica se o exemplar existe
+            exemplar = Exemplar.query.get(exemplar_id)
+            if not exemplar:
+                return jsonify({"error": "Exemplar não encontrado."}), 404
+
+            # Atualiza os campos com os dados fornecidos
+            data = request.json
+            if "prateleira_id" in data:
+                exemplar.prateleira_id = data["prateleira_id"]
+            if "condicao" in data:
+                exemplar.condicao = data["condicao"]
+
+            # Salva as alterações no banco de dados
+            db.session.commit()
+            return jsonify({
+                "id": exemplar.id,
+                "codigo_inventario": exemplar.codigo_inventario,
+                "prateleira_id": exemplar.prateleira_id,
+                "condicao": exemplar.condicao,
+            }), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500    
 
 
 @app.route('/api/popular-livros', methods=['POST'])
@@ -610,33 +655,37 @@ def update_emprestimo(id):
         return jsonify({"error": "Empréstimo não encontrado."}), 404
 
     # Atualiza os atributos do empréstimo
-    emprestimo.data_devolucao = datetime.strptime(data["data_devolucao"], "%a, %d %b %Y %H:%M:%S %Z")
+    emprestimo.data_devolucao = datetime.fromisoformat(data["data_devolucao"].replace("Z", ""))
+
     emprestimo.devolvido = data.get("devolvido", emprestimo.devolvido)
 
+    # Verifica se há dados de multa na requisição
+    multa_data = data.get("multa")
+    if multa_data:
+        if emprestimo.multa:
+            # Atualiza a multa existente
+            emprestimo.multa.valor = multa_data["valor"]
+            emprestimo.multa.data_pagamento = multa_data.get("data_pagamento", emprestimo.multa.data_pagamento)
+        else:
+            # Cria uma nova multa
+            nova_multa = Multa(
+                emprestimo_id=emprestimo.id,
+                valor=multa_data["valor"],
+                data_pagamento=multa_data.get("data_pagamento")
+            )
+            db.session.add(nova_multa)
+            emprestimo.multa = nova_multa  # Relaciona a nova multa ao empréstimo
 
-    # Atualiza a multa se ela existir
-    if emprestimo.multa:
-        emprestimo.multa.valor = data["multa"]["valor"]  # Atualiza o valor da multa
-        emprestimo.multa.data_pagamento = data["multa"].get("data_pagamento", emprestimo.multa.data_pagamento)
-    
+    # Atualiza disponibilidade do exemplar
     if emprestimo.devolvido:
         exemplar = Exemplar.query.get(emprestimo.exemplar_id)  # Assumindo que emprestimo.exemplar_id é a chave do exemplar emprestado
         if exemplar:
             exemplar.disponivel = True  # Marca o exemplar como disponível
 
-    # else:
-        # # Se não existir, cria uma nova multa
-        # nova_multa = Multa(
-        #     emprestimo_id=emprestimo.id,
-        #     valor=data["multa"]["valor"],
-        #     data_pagamento=data["multa"].get("data_pagamento")
-        # )
-        # db.session.add(nova_multa)
-
-    # Salva as mudanças no banco de dados
     db.session.commit()
 
     return jsonify(emprestimo.to_json()), 200
+
 
 
 # Prateleiras
@@ -665,12 +714,16 @@ def gerar_relatorio():
         # Total de empréstimos por livro
         livros_mais_emprestados = db.session.query(
             Livro.titulo, db.func.count(Emprestimo.id).label('total_emprestimos')
-        ).join(Emprestimo, Emprestimo.livro_id == Livro.id).group_by(Livro.titulo).order_by(db.desc('total_emprestimos')).all()
+        ).join(Exemplar, Exemplar.livro_id == Livro.id) \
+         .join(Emprestimo, Emprestimo.exemplar_id == Exemplar.id) \
+         .group_by(Livro.titulo).order_by(db.desc('total_emprestimos')).all()
 
         # Total de empréstimos por categoria
         categorias_mais_emprestadas = db.session.query(
             Livro.categoria, db.func.count(Emprestimo.id).label('total_emprestimos')
-        ).join(Emprestimo, Emprestimo.livro_id == Livro.id).group_by(Livro.categoria).order_by(db.desc('total_emprestimos')).all()
+        ).join(Exemplar, Exemplar.livro_id == Livro.id) \
+         .join(Emprestimo, Emprestimo.exemplar_id == Exemplar.id) \
+         .group_by(Livro.categoria).order_by(db.desc('total_emprestimos')).all()
 
         # Porcentagem de livros danificados
         total_exemplares = db.session.query(Exemplar).count()

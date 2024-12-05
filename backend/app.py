@@ -7,6 +7,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+
 # Configuração do banco de dados
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///library.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False

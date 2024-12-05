@@ -35,7 +35,7 @@ export default function LoanPage() {
 		event.preventDefault(); // Previne o comportamento padrão de envio do formulário
 		const requestData = {
 			...loanData,
-			data_devolucao: new Date(loanData.data_devolucao).toUTCString(), // Converte a data para o formato UTC
+			data_devolucao: new Date(loanData.data_devolucao).toISOString(), // Converte a data para o formato UTC
 		};
 
 		try {
@@ -63,13 +63,13 @@ export default function LoanPage() {
 	// Atualiza os valores dos campos no estado
 	const handleChange = (e) => {
 		const { name, value, type, checked } = e.target;
+
 		setLoanData((prevData) => ({
 			...prevData,
 			[name]: type === "checkbox" ? checked : value,
 			multa: {
 				...prevData.multa,
-				[name === "multa" ? "valor" : name]:
-					type === "checkbox" ? checked : value,
+				...(name === "multa" && { valor: value }),
 			},
 		}));
 	};
@@ -111,14 +111,19 @@ export default function LoanPage() {
 						<p className="text-gray-600">
 							<strong>Valor da Multa:</strong>{" "}
 							{loanData.multa?.valor ? (
-								<span>R$<span className="text-hard-orange font-semibold">{loanData.multa.valor},00</span></span>
-							) : "Nenhuma multa aplicada"}
+								<span>
+									R$
+									<span className="text-hard-orange font-semibold">
+										{loanData.multa.valor},00
+									</span>
+								</span>
+							) : (
+								"Nenhuma multa aplicada"
+							)}
 						</p>
 						<p className="text-gray-600">
 							<strong>Data de Pagamento:</strong>{" "}
-							{loanData.multa?.data_pagamento
-								? loanData.multa.data_pagamento
-								: "Não paga"}
+							{loanData.multa?.data_pagamento || "Não paga"}
 						</p>
 					</div>
 				)}
@@ -135,7 +140,7 @@ export default function LoanPage() {
 							id="devolvido"
 							type="checkbox"
 							name="devolvido"
-							checked={loanData.devolvido}
+							checked={loanData.devolvido || false}
 							onChange={handleChange}
 							className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
 						/>
@@ -164,8 +169,8 @@ export default function LoanPage() {
 						<input
 							id="multa"
 							type="number"
-							name="multa" // O name aqui deve ser "multa" para o estado ser atualizado corretamente
-							value={loanData.multa?.valor || 0} // Acessa o valor corretamente
+							name="multa"
+							value={loanData.multa?.valor || 0}
 							onChange={handleChange}
 							min="0"
 							className="text-white mt-1 block w-full justify-self-center p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
@@ -181,7 +186,6 @@ export default function LoanPage() {
 					</button>
 				</form>
 			</div>
-			
 		</div>
 	);
 }
